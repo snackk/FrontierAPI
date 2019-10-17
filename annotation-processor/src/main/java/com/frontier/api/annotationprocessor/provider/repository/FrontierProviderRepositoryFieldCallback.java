@@ -4,6 +4,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 
 public class FrontierProviderRepositoryFieldCallback implements FieldCallback {
@@ -21,15 +24,16 @@ public class FrontierProviderRepositoryFieldCallback implements FieldCallback {
   @Override
   public void doWith(Field field)
       throws IllegalArgumentException, IllegalAccessException {
+
     if (!field.isAnnotationPresent(FrontierProviderRepository.class)) {
       return;
     }
-    /*
+
     ReflectionUtils.makeAccessible(field);
+/*
     Type fieldGenericType = field.getGenericType();
 
     Class<?> generic = field.getType();
-    String guarantee = field.getDeclaredAnnotation(FrontierProviderRepository.class).guarantee();
 
     if (isGuaranteeValid(guarantee)) {
       String beanName = generic.getSimpleName();
@@ -37,7 +41,14 @@ public class FrontierProviderRepositoryFieldCallback implements FieldCallback {
       field.set(bean, beanInstance);
     } else {
       throw new IllegalArgumentException(ERROR_WRONG_GUARANTEE_STRING);
-    }*/
+    }
+*/
+
+    if (bean instanceof CrudRepository) { //or just Repository???
+      CrudRepository repository = (CrudRepository) bean;
+      GenericApplicationContext gac = new GenericApplicationContext();
+      gac.registerBean("asd", RepositoryWrapper.class);
+    }
   }
 
   public Object getBeanInstance(

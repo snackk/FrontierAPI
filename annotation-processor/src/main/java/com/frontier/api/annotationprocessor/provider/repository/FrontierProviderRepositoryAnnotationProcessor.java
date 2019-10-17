@@ -4,12 +4,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 
 @Component
-public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor {
+public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
 
   private ConfigurableListableBeanFactory configurableBeanFactory;
 
@@ -41,5 +42,10 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
     FieldCallback fieldCallback =
         new FrontierProviderRepositoryFieldCallback(configurableBeanFactory, bean);
     ReflectionUtils.doWithFields(managedBeanClass, fieldCallback);
+  }
+
+  @Override
+  public int getOrder() {
+    return 0;
   }
 }
