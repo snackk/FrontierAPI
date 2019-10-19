@@ -1,13 +1,15 @@
 package com.frontier.api.annotationprocessor.provider.repository;
 
+import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.Ordered;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.FieldCallback;
 
 @Component
 public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
@@ -23,25 +25,30 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   @Override
   public Object postProcessBeforeInitialization(Object bean, String beanName)
       throws BeansException {
-    this.scanDataAccessAnnotation(bean, beanName);
     return bean;
   }
 
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
+    if (beanName.contains("FrontierRepository")) {
+      this.registerRepositoryWrapper(bean);
+    }
     return bean;
   }
 
-  protected void scanDataAccessAnnotation(Object bean, String beanName) {
-    this.configureFieldInjection(bean);
-  }
-
-  private void configureFieldInjection(Object bean) {
-    Class<?> managedBeanClass = bean.getClass();
-    FieldCallback fieldCallback =
-        new FrontierProviderRepositoryFieldCallback(configurableBeanFactory, bean);
-    ReflectionUtils.doWithFields(managedBeanClass, fieldCallback);
+  private void registerRepositoryWrapper(Object bean) {
+    if (bean instanceof JpaRepositoryFactoryBean) {
+      Class<?> repositoryBeanClass = ((JpaRepositoryFactoryBean) bean).getRepositoryInformation()
+          .getRepositoryInterface();
+      if (repositoryBeanClass.isAnnotationPresent(FrontierProviderRepository.class)) {
+        CrudRepository repository = (CrudRepository) bean;
+        GenericApplicationContext gac = new GenericApplicationContext();
+        //TODO register a single bean here?
+        gac.registerBean("FrontierRepository", FrontierRepositoryWrapper.class,
+            () -> new FrontierRepositoryWrapper(repository));
+      }
+    }
   }
 
   @Override

@@ -7,7 +7,7 @@ public class FrontierRepositoryWrapper {
   private final CrudRepository repository;
 
   public FrontierRepositoryWrapper(CrudRepository repository) {
-    this.repository = null; //missing set here
+    this.repository = repository;
   }
 
   public CrudRepository getRepository() {
