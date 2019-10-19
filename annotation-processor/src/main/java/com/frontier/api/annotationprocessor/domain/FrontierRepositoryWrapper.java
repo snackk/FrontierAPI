@@ -1,12 +1,12 @@
-package com.frontier.api.annotationprocessor.provider.repository;
+package com.frontier.api.annotationprocessor.domain;
 
 import org.springframework.data.repository.CrudRepository;
 
-public class RepositoryWrapper {
+public class FrontierRepositoryWrapper {
 
   private final CrudRepository repository;
 
-  public RepositoryWrapper(CrudRepository repository) {
+  public FrontierRepositoryWrapper(CrudRepository repository) {
     this.repository = null; //missing set here
   }
 

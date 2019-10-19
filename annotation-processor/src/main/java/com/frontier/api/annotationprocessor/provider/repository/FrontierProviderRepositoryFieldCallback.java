@@ -1,5 +1,6 @@
 package com.frontier.api.annotationprocessor.provider.repository;
 
+import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -47,7 +48,7 @@ public class FrontierProviderRepositoryFieldCallback implements FieldCallback {
     if (bean instanceof CrudRepository) { //or just Repository???
       CrudRepository repository = (CrudRepository) bean;
       GenericApplicationContext gac = new GenericApplicationContext();
-      gac.registerBean("asd", RepositoryWrapper.class);
+      gac.registerBean("asd", FrontierRepositoryWrapper.class);
     }
   }
 
