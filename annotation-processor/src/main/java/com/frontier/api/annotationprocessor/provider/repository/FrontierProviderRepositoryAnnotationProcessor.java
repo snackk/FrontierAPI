@@ -37,7 +37,7 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
           .getRepositoryInformation();
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
-        context.registerBean("FrontierRepository", FrontierRepositoryWrapper.class,
+        context.registerBean(FrontierRepositoryWrapper.class,
             () -> new FrontierRepositoryWrapper(beanName, repositoryInformation.getDomainType(),
                 repositoryInformation.getIdType()));
       }

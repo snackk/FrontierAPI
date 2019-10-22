@@ -32,7 +32,7 @@ public class AnnotationProcessorApplication implements CommandLineRunner {
     User user = all.iterator().next();
     System.out.println(user.getEmail() + " DONE");
     FrontierRepositoryWrapper wrapper = (FrontierRepositoryWrapper) context
-        .getBean("FrontierRepository");
+        .getBean(FrontierRepositoryWrapper.class);
 
     CrudRepository bean1 = (CrudRepository) context.getBean(wrapper.getName());
     bean1.findAll();
