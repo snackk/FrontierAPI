@@ -26,20 +26,23 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
     if (beanName.contains("FrontierRepository")) {
-      this.registerRepositoryWrapper(bean, beanName);
+      this.registerRepositoryWrapper(bean);
     }
     return bean;
   }
 
-  private void registerRepositoryWrapper(Object bean, String beanName) {
+  private void registerRepositoryWrapper(Object bean) {
     if (bean instanceof JpaRepositoryFactoryBean) {
       RepositoryInformation repositoryInformation = ((JpaRepositoryFactoryBean) bean)
           .getRepositoryInformation();
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
         context.registerBean(FrontierRepositoryWrapper.class,
-            () -> new FrontierRepositoryWrapper(beanName, repositoryInformation.getDomainType(),
-                repositoryInformation.getIdType()));
+            () -> new FrontierRepositoryWrapper(
+                repositoryInformation.getRepositoryInterface().getName()));
+        //TODO Not needed??
+        //repositoryInformation.getDomainType(),
+        //repositoryInformation.getIdType()));
       }
     }
   }

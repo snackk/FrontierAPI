@@ -1,30 +1,27 @@
 package com.frontier.api.annotationprocessor.domain;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class FrontierRepositoryWrapper {
 
-  private String name;
+  private final Map<String, List<FrontierRepositoryProperty>> frontierRepositoryProperties =
+      new HashMap<>();
 
-  private Class<?> domainType;
-
-  private Class<?> idType;
-
-  public FrontierRepositoryWrapper(String name,
-      Class<?> domainType,
-      Class<?> idType) {
-    this.name = name;
-    this.domainType = domainType;
-    this.idType = idType;
+  public FrontierRepositoryWrapper(String classPath) {
+    ArrayList<FrontierRepositoryProperty> frontierRepositoryProperties = new ArrayList<>();
+    this.frontierRepositoryProperties.put(classPath, frontierRepositoryProperties);
   }
 
-  public String getName() {
-    return name;
+  public void addFrontierRepositoryProperty(String classPath,
+      FrontierRepositoryProperty frontierRepositoryProperty) {
+    frontierRepositoryProperties.get(classPath).add(frontierRepositoryProperty);
   }
 
-  public Class<?> getDomainType() {
-    return domainType;
+  public Map<String, List<FrontierRepositoryProperty>> getFrontierRepositoryProperties() {
+    return this.frontierRepositoryProperties;
   }
 
-  public Class<?> getIdType() {
-    return idType;
-  }
 }

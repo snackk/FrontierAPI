@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor;
+package com.frontier.api.annotationprocessor.domain;
 
 public enum Guarantee {
   SYNCHRONOUS("synchronous"),
