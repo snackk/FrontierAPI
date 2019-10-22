@@ -4,23 +4,17 @@ import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 
 @Component
 public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
 
-  private ConfigurableListableBeanFactory configurableBeanFactory;
-
   @Autowired
-  public FrontierProviderRepositoryAnnotationProcessor(
-      ConfigurableListableBeanFactory beanFactory) {
-    this.configurableBeanFactory = beanFactory;
-  }
+  private GenericWebApplicationContext context;
 
   @Override
   public Object postProcessBeforeInitialization(Object bean, String beanName)
@@ -32,21 +26,20 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
     if (beanName.contains("FrontierRepository")) {
-      this.registerRepositoryWrapper(bean);
+      this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
   }
 
-  private void registerRepositoryWrapper(Object bean) {
+  private void registerRepositoryWrapper(Object bean, String beanName) {
     if (bean instanceof JpaRepositoryFactoryBean) {
-      Class<?> repositoryBeanClass = ((JpaRepositoryFactoryBean) bean).getRepositoryInformation()
-          .getRepositoryInterface();
-      if (repositoryBeanClass.isAnnotationPresent(FrontierProviderRepository.class)) {
-        CrudRepository repository = (CrudRepository) bean;
-        GenericApplicationContext gac = new GenericApplicationContext();
-        //TODO register a single bean here?
-        gac.registerBean("FrontierRepository", FrontierRepositoryWrapper.class,
-            () -> new FrontierRepositoryWrapper(repository));
+      RepositoryInformation repositoryInformation = ((JpaRepositoryFactoryBean) bean)
+          .getRepositoryInformation();
+      if (repositoryInformation.getRepositoryInterface()
+          .isAnnotationPresent(FrontierProviderRepository.class)) {
+        context.registerBean("FrontierRepository", FrontierRepositoryWrapper.class,
+            () -> new FrontierRepositoryWrapper(beanName, repositoryInformation.getDomainType(),
+                repositoryInformation.getIdType()));
       }
     }
   }

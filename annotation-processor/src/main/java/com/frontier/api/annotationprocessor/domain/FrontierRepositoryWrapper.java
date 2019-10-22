@@ -1,16 +1,30 @@
 package com.frontier.api.annotationprocessor.domain;
 
-import org.springframework.data.repository.CrudRepository;
-
 public class FrontierRepositoryWrapper {
 
-  private final CrudRepository repository;
+  private String name;
 
-  public FrontierRepositoryWrapper(CrudRepository repository) {
-    this.repository = repository;
+  private Class<?> domainType;
+
+  private Class<?> idType;
+
+  public FrontierRepositoryWrapper(String name,
+      Class<?> domainType,
+      Class<?> idType) {
+    this.name = name;
+    this.domainType = domainType;
+    this.idType = idType;
   }
 
-  public CrudRepository getRepository() {
-    return repository;
+  public String getName() {
+    return name;
+  }
+
+  public Class<?> getDomainType() {
+    return domainType;
+  }
+
+  public Class<?> getIdType() {
+    return idType;
   }
 }
