@@ -1,5 +1,6 @@
 package com.frontier.api.annotationprocessor.provider.properties;
 
+import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import com.frontier.api.annotationprocessor.domain.Guarantee;
@@ -34,22 +35,23 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
     if (beanName.contains("FrontierRepository")) {
-      this.registerRepositoryWrapper(bean);
+      this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
   }
 
-  private void registerRepositoryWrapper(Object bean) {
+  private void registerRepositoryWrapper(Object bean, String beanName) {
     if (bean instanceof JpaRepositoryFactoryBean) {
       RepositoryInformation repositoryInformation = ((JpaRepositoryFactoryBean) bean)
           .getRepositoryInformation();
       repositoryInformation.getQueryMethods().stream()
           .filter(a -> a.isAnnotationPresent(FrontierProperties.class))
-          .forEach(a -> doSomething(a, repositoryInformation));
+          .forEach(a -> doSomething(a, repositoryInformation, beanName));
     }
   }
 
-  private void doSomething(Method method, RepositoryInformation repositoryInformation) {
+  private void doSomething(Method method, RepositoryInformation repositoryInformation,
+      String beanName) {
     Guarantee guarantee = guaranteeIfValid(
         method.getAnnotation(FrontierProperties.class).guarantee())
         .orElseThrow(() -> new IllegalArgumentException(WRONG_GUARANTEE));
@@ -61,7 +63,10 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
     FrontierRepositoryWrapper frontierRepositoryWrapper = context
         .getBean(FrontierRepositoryWrapper.class);
-    frontierRepositoryWrapper.addFrontierRepositoryProperty(classPath, frontierRepositoryProperty);
+    FrontierRepositoryIdentity frontierRepositoryIdentity = new FrontierRepositoryIdentity(
+        classPath, beanName);
+    frontierRepositoryWrapper
+        .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
   }
 
   private Optional<Guarantee> guaranteeIfValid(String guarantee) {

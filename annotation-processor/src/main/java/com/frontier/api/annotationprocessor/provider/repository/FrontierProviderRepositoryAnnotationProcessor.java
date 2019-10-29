@@ -1,5 +1,6 @@
 package com.frontier.api.annotationprocessor.provider.repository;
 
+import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,20 +27,21 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
     if (beanName.contains("FrontierRepository")) {
-      this.registerRepositoryWrapper(bean);
+      this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
   }
 
-  private void registerRepositoryWrapper(Object bean) {
+  private void registerRepositoryWrapper(Object bean, String beanName) {
     if (bean instanceof JpaRepositoryFactoryBean) {
       RepositoryInformation repositoryInformation = ((JpaRepositoryFactoryBean) bean)
           .getRepositoryInformation();
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
+        FrontierRepositoryIdentity frontierRepositoryIdentity = new FrontierRepositoryIdentity(
+            repositoryInformation.getRepositoryInterface().getName(), beanName);
         context.registerBean(FrontierRepositoryWrapper.class,
-            () -> new FrontierRepositoryWrapper(
-                repositoryInformation.getRepositoryInterface().getName()));
+            () -> new FrontierRepositoryWrapper(frontierRepositoryIdentity));
         //TODO Not needed??
         //repositoryInformation.getDomainType(),
         //repositoryInformation.getIdType()));

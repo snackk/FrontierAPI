@@ -7,20 +7,20 @@ import java.util.Map;
 
 public class FrontierRepositoryWrapper {
 
-  private final Map<String, List<FrontierRepositoryProperty>> frontierRepositoryProperties =
+  private final Map<FrontierRepositoryIdentity, List<FrontierRepositoryProperty>> frontierRepositoryProperties =
       new HashMap<>();
 
-  public FrontierRepositoryWrapper(String classPath) {
+  public FrontierRepositoryWrapper(FrontierRepositoryIdentity frontierRepositoryIdentity) {
     ArrayList<FrontierRepositoryProperty> frontierRepositoryProperties = new ArrayList<>();
-    this.frontierRepositoryProperties.put(classPath, frontierRepositoryProperties);
+    this.frontierRepositoryProperties.put(frontierRepositoryIdentity, frontierRepositoryProperties);
   }
 
-  public void addFrontierRepositoryProperty(String classPath,
+  public void addFrontierRepositoryProperty(FrontierRepositoryIdentity frontierRepositoryIdentity,
       FrontierRepositoryProperty frontierRepositoryProperty) {
-    frontierRepositoryProperties.get(classPath).add(frontierRepositoryProperty);
+    frontierRepositoryProperties.get(frontierRepositoryIdentity).add(frontierRepositoryProperty);
   }
 
-  public Map<String, List<FrontierRepositoryProperty>> getFrontierRepositoryProperties() {
+  public Map<FrontierRepositoryIdentity, List<FrontierRepositoryProperty>> getFrontierRepositoryProperties() {
     return this.frontierRepositoryProperties;
   }
 
