@@ -55,16 +55,23 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
     Guarantee guarantee = guaranteeIfValid(
         method.getAnnotation(FrontierProperties.class).guarantee())
         .orElseThrow(() -> new IllegalArgumentException(WRONG_GUARANTEE));
+
     String classPath = repositoryInformation.getRepositoryInterface().getName();
     String methodName = method.getName();
 
-    FrontierRepositoryProperty frontierRepositoryProperty = new FrontierRepositoryProperty(
-        guarantee, methodName);
+    FrontierRepositoryProperty frontierRepositoryProperty = FrontierRepositoryProperty.builder()
+        .guarantee(guarantee)
+        .methodName(methodName)
+        .build();
 
     FrontierRepositoryWrapper frontierRepositoryWrapper = context
         .getBean(FrontierRepositoryWrapper.class);
-    FrontierRepositoryIdentity frontierRepositoryIdentity = new FrontierRepositoryIdentity(
-        classPath, beanName);
+
+    FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity.builder()
+        .classpath(classPath)
+        .beanName(beanName)
+        .build();
+
     frontierRepositoryWrapper
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
   }

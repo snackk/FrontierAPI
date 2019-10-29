@@ -1,22 +1,13 @@
 package com.frontier.api.annotationprocessor.domain;
 
+import lombok.Builder;
+import lombok.Getter;
+
+@Builder
+@Getter
 public class FrontierRepositoryIdentity {
 
-  private final String classpath;
+  private String classpath;
 
-  private final String beanName;
-
-  public FrontierRepositoryIdentity(String classpath,
-      String beanName) {
-    this.beanName = beanName;
-    this.classpath = classpath;
-  }
-
-  public String getClasspath() {
-    return classpath;
-  }
-
-  public String getBeanName() {
-    return beanName;
-  }
+  private String beanName;
 }

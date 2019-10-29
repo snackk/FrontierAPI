@@ -38,8 +38,12 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
           .getRepositoryInformation();
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
-        FrontierRepositoryIdentity frontierRepositoryIdentity = new FrontierRepositoryIdentity(
-            repositoryInformation.getRepositoryInterface().getName(), beanName);
+
+        FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity.builder()
+            .classpath(repositoryInformation.getRepositoryInterface().getName())
+            .beanName(beanName)
+            .build();
+
         context.registerBean(FrontierRepositoryWrapper.class,
             () -> new FrontierRepositoryWrapper(frontierRepositoryIdentity));
         //TODO Not needed??
