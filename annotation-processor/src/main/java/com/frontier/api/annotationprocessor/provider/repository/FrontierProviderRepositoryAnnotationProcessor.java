@@ -3,7 +3,6 @@ package com.frontier.api.annotationprocessor.provider.repository;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -14,8 +13,11 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 @Component
 public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
 
-  @Autowired
-  private GenericWebApplicationContext context;
+  private final GenericWebApplicationContext context;
+
+  public FrontierProviderRepositoryAnnotationProcessor(GenericWebApplicationContext context) {
+    this.context = context;
+  }
 
   @Override
   public Object postProcessBeforeInitialization(Object bean, String beanName)

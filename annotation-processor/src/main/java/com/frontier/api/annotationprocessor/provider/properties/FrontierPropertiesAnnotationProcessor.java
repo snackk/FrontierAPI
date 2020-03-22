@@ -8,7 +8,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -19,11 +18,14 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 @Component
 public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor, Ordered {
 
-  @Autowired
-  private GenericWebApplicationContext context;
+  private final GenericWebApplicationContext context;
+
+  public FrontierPropertiesAnnotationProcessor(GenericWebApplicationContext context) {
+    this.context = context;
+  }
 
   private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
-      + "Valid guarantees are: synchronous, asynchronous and bes-effort.";
+      + "Valid guarantees are: synchronous, asynchronous and best-effort.";
 
   @Override
   public Object postProcessBeforeInitialization(Object bean, String beanName)
@@ -71,7 +73,7 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
         .classpath(classPath)
         .beanName(beanName)
         .build();
-
+    //TODO key's not working. Need to revert that
     frontierRepositoryWrapper
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
   }

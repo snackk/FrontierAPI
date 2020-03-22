@@ -8,7 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 @FrontierProviderRepository
 public interface TestFrontierRepository extends CrudRepository<User, Long> {
 
-  @FrontierProperties(guarantee = "best-effort")
+  @FrontierProperties(guarantee = "synchronous")
   List<User> findAllByEmail(String email);
 
 }
