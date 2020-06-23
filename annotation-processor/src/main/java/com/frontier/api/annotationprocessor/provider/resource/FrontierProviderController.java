@@ -4,8 +4,10 @@ import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +23,9 @@ public class FrontierProviderController {
 
   private final Map<String, FrontierRequestHandler> controllersEndpoint = new HashMap<>();
 
-  private final static String FRONTIER_ENDPOINT = "api/frontier/";
+  private final static String FRONTIER_ENDPOINT = "/api/frontier/";
 
+  @Autowired
   public FrontierProviderController(GenericWebApplicationContext context) {
     this.frontierRepositoryWrapper = context
         .getBean(FrontierRepositoryWrapper.class);
