@@ -15,6 +15,8 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
 
   private final GenericWebApplicationContext context;
 
+  private final static String BEAN_SUFFIX_NAME = "FrontierRepository";
+
   public FrontierProviderRepositoryAnnotationProcessor(GenericWebApplicationContext context) {
     this.context = context;
   }
@@ -28,7 +30,7 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
-    if (beanName.contains("FrontierRepository")) {
+    if (beanName.contains(BEAN_SUFFIX_NAME)) {
       this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
@@ -41,16 +43,15 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
 
-        FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity.builder()
+        FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity
+            .builder()
             .classpath(repositoryInformation.getRepositoryInterface().getName())
             .beanName(beanName)
             .build();
 
+        //TODO Bean should already be present -FrontierRepositoryWrapper-, we should just append new Identities into it
         context.registerBean(FrontierRepositoryWrapper.class,
             () -> new FrontierRepositoryWrapper(frontierRepositoryIdentity));
-        //TODO Not needed??
-        //repositoryInformation.getDomainType(),
-        //repositoryInformation.getIdType()));
       }
     }
   }

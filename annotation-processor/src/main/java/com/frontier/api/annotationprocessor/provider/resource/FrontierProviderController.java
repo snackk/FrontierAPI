@@ -1,6 +1,7 @@
 package com.frontier.api.annotationprocessor.provider.resource;
 
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
+import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -25,8 +26,10 @@ public class FrontierProviderController {
   public FrontierProviderController(GenericWebApplicationContext context) {
     this.frontierRepositoryWrapper = context
         .getBean(FrontierRepositoryWrapper.class);
-    frontierRepositoryWrapper.getFrontierRepositoryProperties().entrySet().stream()
+    frontierRepositoryWrapper.getFrontierRepositoryProperties()
+        .entrySet()
         .forEach(beans -> {
+          //TODO Create REST OR SQS based on guarantee level
           CrudRepository crudRepository = (CrudRepository) context
               .getBean(beans.getKey().getBeanName());
           controllersEndpoint.put(FRONTIER_ENDPOINT + beans.getKey().getBeanName(),
@@ -34,16 +37,16 @@ public class FrontierProviderController {
         });
   }
 
-
   @RequestMapping(FRONTIER_ENDPOINT + "/**")
   public ResponseEntity<Object> index(HttpServletRequest request, HttpServletResponse response,
-      @RequestBody Object body) {
+      @RequestBody FrontierRequestBody body) {
     String requestURI = request.getRequestURI();
-    String method = request.getMethod();
 
-    return controllersEndpoint.entrySet().stream()
+    return controllersEndpoint
+        .entrySet()
+        .stream()
         .filter(e -> requestURI.contains(e.getKey()))
-        .map(e -> e.getValue().handleRequest(method, request, response, body))
+        .map(e -> e.getValue().handleRequest(body))
         .findFirst()
         .orElse(new ResponseEntity<>(
             "No bean registered under Frontier API for the request: " + requestURI,
