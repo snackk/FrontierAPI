@@ -1,5 +1,7 @@
 package com.frontier.api.annotationprocessor.provider.properties;
 
+import static com.frontier.api.annotationprocessor.provider.repository.FrontierProviderRepositoryAnnotationProcessor.BEAN_SUFFIX_NAME;
+
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
@@ -36,7 +38,7 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
-    if (beanName.contains("FrontierRepository")) {
+    if (beanName.contains(BEAN_SUFFIX_NAME)) {
       this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
@@ -46,15 +48,18 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
     if (bean instanceof JpaRepositoryFactoryBean) {
       RepositoryInformation repositoryInformation = ((JpaRepositoryFactoryBean) bean)
           .getRepositoryInformation();
-      repositoryInformation.getQueryMethods().stream()
-          .filter(a -> a.isAnnotationPresent(FrontierProperties.class))
-          .forEach(a -> doSomething(a, repositoryInformation, beanName));
+
+      repositoryInformation.getQueryMethods()
+          .stream()
+          .filter(m -> m.isAnnotationPresent(FrontierProperties.class))
+          .forEach(m -> registerRepositoryProperties(m, repositoryInformation, beanName));
     }
   }
 
-  private void doSomething(Method method, RepositoryInformation repositoryInformation,
-      String beanName) {
-    Guarantee guarantee = guaranteeIfValid(
+  private void registerRepositoryProperties(Method method,
+      RepositoryInformation repositoryInformation, String beanName) {
+
+    Guarantee guarantee = getMethodGuarantee(
         method.getAnnotation(FrontierProperties.class).guarantee())
         .orElseThrow(() -> new IllegalArgumentException(WRONG_GUARANTEE));
 
@@ -73,12 +78,12 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
         .classpath(classPath)
         .beanName(beanName)
         .build();
-    //TODO key's not working. Need to revert that
+
     frontierRepositoryWrapper
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
   }
 
-  private Optional<Guarantee> guaranteeIfValid(String guarantee) {
+  private Optional<Guarantee> getMethodGuarantee(String guarantee) {
     return Arrays.stream(Guarantee.values())
         .filter(g -> g.getName().equals(guarantee))
         .findFirst();
@@ -86,6 +91,6 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
   @Override
   public int getOrder() {
-    return 1;
+    return 0;
   }
 }

@@ -1,7 +1,7 @@
 package com.frontier.api.annotationprocessor;
 
-import com.frontier.api.annotationprocessor.test.TestFrontierRepository;
-import com.frontier.api.annotationprocessor.test.User;
+import com.frontier.api.annotationprocessor.provider.test.TestFrontierRepository;
+import com.frontier.api.annotationprocessor.provider.test.User;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

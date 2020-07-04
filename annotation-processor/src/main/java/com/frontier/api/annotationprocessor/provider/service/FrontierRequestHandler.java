@@ -1,10 +1,12 @@
-package com.frontier.api.annotationprocessor.provider.resource;
+package com.frontier.api.annotationprocessor.provider.service;
+
+import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 
 import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
+import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
+import java.util.Optional;
 import java.util.function.IntFunction;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 public class FrontierRequestHandler {
 
@@ -14,7 +16,7 @@ public class FrontierRequestHandler {
     this.crudRepository = crudRepository;
   }
 
-  protected ResponseEntity<Object> handleRequest(FrontierRequestBody body) {
+  public FrontierResponseBody doFrontierApiRequest(FrontierRequestBody body) {
     try {
       Class<?>[] paramTypes = body
           .getMethodParams()
@@ -24,13 +26,17 @@ public class FrontierRequestHandler {
 
       Object[] paramValues = body.getMethodParams().toArray();
 
-      return ResponseEntity.ok()
-          .body(crudRepository.getClass().getMethod(body.getMethodName(), paramTypes)
+      Optional<Object> response = Optional
+          .of(crudRepository.getClass().getMethod(body.getMethodName(), paramTypes)
               .invoke(crudRepository, paramValues));
+
+      return FrontierResponseBody
+          .builder()
+          .response(response)
+          .build();
+
     } catch (Exception e) {
-      return new ResponseEntity<>(
-          "Something went wrong in Frontier API while ingesting the payload: " + body,
-          HttpStatus.METHOD_NOT_ALLOWED);
+      return FRONTIER_PROCESSOR_ERROR;
     }
   }
 }

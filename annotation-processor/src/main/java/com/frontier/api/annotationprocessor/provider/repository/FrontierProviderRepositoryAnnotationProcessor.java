@@ -2,7 +2,9 @@ package com.frontier.api.annotationprocessor.provider.repository;
 
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
+import java.util.Optional;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -15,7 +17,7 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
 
   private final GenericWebApplicationContext context;
 
-  private final static String BEAN_SUFFIX_NAME = "FrontierRepository";
+  public final static String BEAN_SUFFIX_NAME = "FrontierRepository";
 
   public FrontierProviderRepositoryAnnotationProcessor(GenericWebApplicationContext context) {
     this.context = context;
@@ -43,21 +45,32 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
 
+        Optional<FrontierRepositoryWrapper> frontierRepositoryWrapperOpt = Optional.empty();
+        try {
+          frontierRepositoryWrapperOpt = Optional.of(context
+              .getBean(FrontierRepositoryWrapper.class));
+        } catch (NoSuchBeanDefinitionException e) {
+        }
+
+        if (!frontierRepositoryWrapperOpt.isPresent()) {
+          context.registerBean(FrontierRepositoryWrapper.class,
+              FrontierRepositoryWrapper::getInstance);
+        }
+
         FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity
             .builder()
             .classpath(repositoryInformation.getRepositoryInterface().getName())
             .beanName(beanName)
             .build();
 
-        //TODO Bean should already be present -FrontierRepositoryWrapper-, we should just append new Identities into it
-        context.registerBean(FrontierRepositoryWrapper.class,
-            () -> new FrontierRepositoryWrapper(frontierRepositoryIdentity));
+        FrontierRepositoryWrapper.getInstance()
+            .addFrontierRepositoryIdentity(frontierRepositoryIdentity);
       }
     }
   }
 
   @Override
   public int getOrder() {
-    return 0;
+    return HIGHEST_PRECEDENCE;
   }
 }

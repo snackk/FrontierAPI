@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor.test;
+package com.frontier.api.annotationprocessor.provider.test;
 
 import com.frontier.api.annotationprocessor.provider.properties.FrontierProperties;
 import com.frontier.api.annotationprocessor.provider.repository.FrontierProviderRepository;
