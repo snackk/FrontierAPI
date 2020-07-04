@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor.test;
+package com.frontier.api.annotationprocessor.provider.test;
 
 import java.util.Objects;
 import javax.persistence.Entity;
@@ -93,3 +93,4 @@ public class User {
     return sb.toString();
   }
 }
+
