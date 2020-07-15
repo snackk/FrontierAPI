@@ -1,26 +1,52 @@
 package com.frontier.api.annotationprocessor.domain;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class FrontierRepositoryWrapper {
 
-  private final Map<FrontierRepositoryIdentity, List<FrontierRepositoryProperty>> frontierRepositoryProperties =
+  private final Map<FrontierRepositoryIdentity, Set<FrontierRepositoryProperty>> frontierRepositoryProperties =
       new HashMap<>();
 
-  public FrontierRepositoryWrapper(FrontierRepositoryIdentity frontierRepositoryIdentity) {
-    ArrayList<FrontierRepositoryProperty> frontierRepositoryProperties = new ArrayList<>();
-    this.frontierRepositoryProperties.put(frontierRepositoryIdentity, frontierRepositoryProperties);
+  private static FrontierRepositoryWrapper frontierRepositoryWrapperInstance;
+
+  public static FrontierRepositoryWrapper getInstance() {
+    if (frontierRepositoryWrapperInstance == null) {
+      frontierRepositoryWrapperInstance = new FrontierRepositoryWrapper();
+    }
+    return frontierRepositoryWrapperInstance;
+  }
+
+  private FrontierRepositoryWrapper() {
   }
 
   public void addFrontierRepositoryProperty(FrontierRepositoryIdentity frontierRepositoryIdentity,
       FrontierRepositoryProperty frontierRepositoryProperty) {
-    frontierRepositoryProperties.get(frontierRepositoryIdentity).add(frontierRepositoryProperty);
+    Set<FrontierRepositoryProperty> updatedFrontierProperties = Optional
+        .ofNullable(this.frontierRepositoryProperties.get(frontierRepositoryIdentity))
+        .map(f -> {
+          f.add(frontierRepositoryProperty);
+          return f;
+        })
+        .orElseGet(() -> {
+          HashSet<FrontierRepositoryProperty> frontierProperties = new HashSet<>();
+          frontierProperties.add(frontierRepositoryProperty);
+          return frontierProperties;
+        });
+    this.frontierRepositoryProperties.put(frontierRepositoryIdentity, updatedFrontierProperties);
   }
 
-  public Map<FrontierRepositoryIdentity, List<FrontierRepositoryProperty>> getFrontierRepositoryProperties() {
+  public void addFrontierRepositoryIdentity(FrontierRepositoryIdentity frontierRepositoryIdentity) {
+    Set<FrontierRepositoryProperty> emptyFrontierProperties = Optional
+        .ofNullable(this.frontierRepositoryProperties.get(frontierRepositoryIdentity))
+        .orElseGet(HashSet::new);
+    this.frontierRepositoryProperties.put(frontierRepositoryIdentity, emptyFrontierProperties);
+  }
+
+  public Map<FrontierRepositoryIdentity, Set<FrontierRepositoryProperty>> getFrontierRepositoryProperties() {
     return this.frontierRepositoryProperties;
   }
 

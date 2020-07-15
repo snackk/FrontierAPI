@@ -2,8 +2,9 @@ package com.frontier.api.annotationprocessor.provider.repository;
 
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
+import java.util.Optional;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -14,8 +15,13 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 @Component
 public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
 
-  @Autowired
-  private GenericWebApplicationContext context;
+  private final GenericWebApplicationContext context;
+
+  public final static String BEAN_SUFFIX_NAME = "FrontierRepository";
+
+  public FrontierProviderRepositoryAnnotationProcessor(GenericWebApplicationContext context) {
+    this.context = context;
+  }
 
   @Override
   public Object postProcessBeforeInitialization(Object bean, String beanName)
@@ -26,7 +32,7 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName)
       throws BeansException {
-    if (beanName.contains("FrontierRepository")) {
+    if (beanName.contains(BEAN_SUFFIX_NAME)) {
       this.registerRepositoryWrapper(bean, beanName);
     }
     return bean;
@@ -39,22 +45,32 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
       if (repositoryInformation.getRepositoryInterface()
           .isAnnotationPresent(FrontierProviderRepository.class)) {
 
-        FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity.builder()
+        Optional<FrontierRepositoryWrapper> frontierRepositoryWrapperOpt = Optional.empty();
+        try {
+          frontierRepositoryWrapperOpt = Optional.of(context
+              .getBean(FrontierRepositoryWrapper.class));
+        } catch (NoSuchBeanDefinitionException e) {
+        }
+
+        if (!frontierRepositoryWrapperOpt.isPresent()) {
+          context.registerBean(FrontierRepositoryWrapper.class,
+              FrontierRepositoryWrapper::getInstance);
+        }
+
+        FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity
+            .builder()
             .classpath(repositoryInformation.getRepositoryInterface().getName())
             .beanName(beanName)
             .build();
 
-        context.registerBean(FrontierRepositoryWrapper.class,
-            () -> new FrontierRepositoryWrapper(frontierRepositoryIdentity));
-        //TODO Not needed??
-        //repositoryInformation.getDomainType(),
-        //repositoryInformation.getIdType()));
+        FrontierRepositoryWrapper.getInstance()
+            .addFrontierRepositoryIdentity(frontierRepositoryIdentity);
       }
     }
   }
 
   @Override
   public int getOrder() {
-    return 0;
+    return HIGHEST_PRECEDENCE;
   }
 }
