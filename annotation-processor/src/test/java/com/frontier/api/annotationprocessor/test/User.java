@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor.provider.test;
+package com.frontier.api.annotationprocessor.test;
 
 import java.util.Objects;
 import javax.persistence.Entity;

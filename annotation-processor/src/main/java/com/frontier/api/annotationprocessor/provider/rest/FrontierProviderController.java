@@ -1,5 +1,6 @@
 package com.frontier.api.annotationprocessor.provider.rest;
 
+import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.NO_FRONTIER_USAGE;
 
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
@@ -63,18 +64,14 @@ public class FrontierProviderController implements Ordered {
 
     String requestURI = request.getRequestURI();
 
-    FrontierResponseBody frontierResponseBody = FrontierResponseBody
-        .builder()
-        .response(
-            Optional.of(
-                controllersEndpoint
-                    .entrySet()
-                    .stream()
-                    .filter(e -> requestURI.contains(e.getKey()))
-                    .map(e -> e.getValue().doFrontierApiRequest(body))
-                    .findFirst())
-        )
-        .build();
+    FrontierResponseBody frontierResponseBody =
+        controllersEndpoint
+            .entrySet()
+            .stream()
+            .filter(e -> requestURI.contains(e.getKey()))
+            .map(e -> e.getValue().doFrontierApiRequest(body))
+            .findFirst()
+            .orElse(FRONTIER_PROCESSOR_ERROR);
 
     return buildFrontierResponseEntity(frontierResponseBody);
   }
