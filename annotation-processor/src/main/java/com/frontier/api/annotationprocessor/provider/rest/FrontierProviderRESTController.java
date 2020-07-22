@@ -3,9 +3,11 @@ package com.frontier.api.annotationprocessor.provider.rest;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.NO_FRONTIER_USAGE;
 
+import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
 import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
 import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
+import com.frontier.api.annotationprocessor.domain.Guarantee;
 import com.frontier.api.annotationprocessor.provider.service.FrontierRequestHandler;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
 @RestController
-public class FrontierProviderController implements Ordered {
+public class FrontierProviderRESTController implements Ordered {
 
   private final Map<String, FrontierRequestHandler> controllersEndpoint = new HashMap<>();
 
@@ -32,7 +34,7 @@ public class FrontierProviderController implements Ordered {
   private final GenericWebApplicationContext context;
 
   @Autowired
-  public FrontierProviderController(GenericWebApplicationContext context) {
+  public FrontierProviderRESTController(GenericWebApplicationContext context) {
     this.context = context;
   }
 
@@ -54,12 +56,13 @@ public class FrontierProviderController implements Ordered {
 
     frontierRepositoryWrapperOpt.ifPresent(frw -> frw.getFrontierRepositoryProperties()
         .forEach((key, value) -> {
-          //TODO Create REST OR SQS based on guarantee level
-          //TODO Disable access to ALL methods, allow for those who have the annotation only
-          CrudRepository crudRepository = (CrudRepository) context
-              .getBean(key.getBeanName());
-          controllersEndpoint.put(FRONTIER_ENDPOINT + key.getBeanName(),
-              new FrontierRequestHandler(crudRepository));
+          if (value.stream().map(FrontierRepositoryProperty::getGuarantee)
+              .anyMatch(p -> p.equals(Guarantee.SYNCHRONOUS))) {
+            CrudRepository crudRepository = (CrudRepository) context
+                .getBean(key.getBeanName());
+            controllersEndpoint.put(FRONTIER_ENDPOINT + key.getBeanName(),
+                new FrontierRequestHandler(crudRepository));
+          }
         }));
 
     String requestURI = request.getRequestURI();
