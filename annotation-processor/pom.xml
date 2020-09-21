@@ -72,6 +72,19 @@
 			<version>1.18.12</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<version>1.14.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<version>1.14.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
