@@ -78,7 +78,7 @@ public class AnnotationProcessorApplicationTests {
   @Before
   public void setUp() {
     this.rabbitTemplateMock = Mockito.mock(RabbitTemplate.class);
-    this.producer = new FrontierProviderAMQPProducer(this.rabbitTemplateMock, testQueueName);
+    this.producer = new FrontierProviderAMQPProducer(this.rabbitTemplateMock);
   }
 
   @Test
@@ -138,7 +138,8 @@ public class AnnotationProcessorApplicationTests {
         .methodParams(
             ImmutableSet.of("email@email.pt"))
         .build();
-    assertThatCode(() -> this.producer.produceRequest(testMessage)).doesNotThrowAnyException();
+    assertThatCode(() -> this.producer.produceMessage(testMessage, testQueueName))
+        .doesNotThrowAnyException();
     String json = new ObjectMapper().writeValueAsString(testMessage);
     Mockito.verify(this.rabbitTemplateMock)
         .convertAndSend(eq(testQueueName), eq(""), eq(json));

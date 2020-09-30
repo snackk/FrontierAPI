@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
 @RestController
@@ -38,8 +39,19 @@ public class FrontierProviderRESTController implements Ordered {
     this.context = context;
   }
 
+  public FrontierResponseBody remoteRequest(String methodName,
+      FrontierRequestBody frontierRequestBody) {
+    final String url = "http://localhost:8080" + FRONTIER_ENDPOINT + methodName;
+    RestTemplate restTemplate = new RestTemplate();
+
+    ResponseEntity<FrontierResponseBody> response = restTemplate
+        .postForEntity(url, frontierRequestBody, FrontierResponseBody.class);
+
+    return response.getBody();
+  }
+
   @RequestMapping(FRONTIER_ENDPOINT + "/**")
-  public ResponseEntity<FrontierResponseBody> index(HttpServletRequest request,
+  public ResponseEntity<FrontierResponseBody> handleRequests(HttpServletRequest request,
       HttpServletResponse response,
       @RequestBody FrontierRequestBody body) {
 

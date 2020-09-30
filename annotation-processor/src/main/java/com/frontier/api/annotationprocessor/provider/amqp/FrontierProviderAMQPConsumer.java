@@ -24,7 +24,7 @@ public class FrontierProviderAMQPConsumer {
   }
 
   @RabbitListener(queues = "${queue-name}")
-  public void consume(String jsonPayload) {
+  public void consumeMessage(String jsonPayload) {
     Optional<FrontierRequestBody> requestBodyOpt = Optional.empty();
     try {
       requestBodyOpt = Optional
