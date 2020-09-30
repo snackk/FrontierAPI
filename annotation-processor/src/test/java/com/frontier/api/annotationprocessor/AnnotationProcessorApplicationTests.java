@@ -4,6 +4,7 @@ import static com.frontier.api.annotationprocessor.provider.service.FrontierReso
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
 import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
 import com.frontier.api.annotationprocessor.provider.amqp.FrontierProviderAMQPProducer;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierProviderRESTController;
 import com.frontier.api.annotationprocessor.test.TestFrontierRepository;
 import com.frontier.api.annotationprocessor.test.User;
 import com.google.common.collect.ImmutableSet;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Import;
@@ -38,7 +41,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.MySQLContainer;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
 @Import(TestFrontierRepository.class)
 public class AnnotationProcessorApplicationTests {
@@ -69,6 +72,9 @@ public class AnnotationProcessorApplicationTests {
   @Autowired
   private MockMvc mockMvc;
 
+  @LocalServerPort
+  private int port;
+
   ObjectMapper objectMapper = new ObjectMapper();
 
   private FrontierProviderAMQPProducer producer;
@@ -87,8 +93,8 @@ public class AnnotationProcessorApplicationTests {
 
     repository.findAllByEmail("");
 
-    FrontierRequestBody requestBody = FrontierRequestBody
-        .builder()
+    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+        .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(ImmutableSet.of("email@email.pt"))
         .build();
@@ -105,10 +111,29 @@ public class AnnotationProcessorApplicationTests {
   }
 
   @Test
-  public void shouldReturnAValidResponse() throws Exception {
+  public void shouldPostUsingFrontierAndReturnSuccessResponse() {
 
-    FrontierRequestBody requestBody = FrontierRequestBody
-        .builder()
+    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+        .beanName("testFrontierRepository")
+        .methodName("findAllByEmail")
+        .methodParams(ImmutableSet.of("email@email.pt"))
+        .build();
+
+    FrontierResponseBody frontierResponseBody = FrontierProviderRESTController
+        .doFrontierRemoteRequest(port, requestBody);
+
+    List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
+
+    assertThat(frontierResponseBody.getResponse()).isEqualTo(expectedEmail);
+    assertThat(frontierResponseBody.getStatus().value()).isEqualTo(200);
+    //assertThat(response.getVerboseErrorMessage().isPresent()).isEqualTo(false);
+  }
+
+  @Test
+  public void shouldPostUsingMockMvcAndReturnSuccessResponse() throws Exception {
+
+    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+        .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(ImmutableSet.of("email@email.pt"))
         .build();
@@ -134,6 +159,7 @@ public class AnnotationProcessorApplicationTests {
   @Test
   public void shouldProduceRabbitMessageSuccessfully() throws JsonProcessingException {
     FrontierRequestBody testMessage = FrontierRequestBody.builder()
+        .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(
             ImmutableSet.of("email@email.pt"))

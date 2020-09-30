@@ -10,6 +10,8 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class FrontierRequestBody {
 
+  private String beanName;
+
   private String methodName;
 
   private Set<Object> methodParams;

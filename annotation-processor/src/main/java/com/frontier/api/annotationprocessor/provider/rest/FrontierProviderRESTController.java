@@ -39,9 +39,10 @@ public class FrontierProviderRESTController implements Ordered {
     this.context = context;
   }
 
-  public FrontierResponseBody remoteRequest(String methodName,
-      FrontierRequestBody frontierRequestBody) {
-    final String url = "http://localhost:8080" + FRONTIER_ENDPOINT + methodName;
+  public static FrontierResponseBody doFrontierRemoteRequest(
+      int port, FrontierRequestBody frontierRequestBody) {
+    final String url =
+        "http://localhost:" + port + FRONTIER_ENDPOINT + frontierRequestBody.getBeanName();
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<FrontierResponseBody> response = restTemplate
