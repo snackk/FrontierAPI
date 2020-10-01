@@ -11,10 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
-import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierRequestMessage;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierResponseMessage;
 import com.frontier.api.annotationprocessor.provider.amqp.FrontierProviderAMQPProducer;
-import com.frontier.api.annotationprocessor.provider.rest.FrontierProviderRESTController;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierProviderController;
 import com.frontier.api.annotationprocessor.test.TestFrontierRepository;
 import com.frontier.api.annotationprocessor.test.User;
 import com.google.common.collect.ImmutableSet;
@@ -70,6 +70,9 @@ public class AnnotationProcessorApplicationTests {
   private TestFrontierRepository repository;
 
   @Autowired
+  private FrontierProviderController frontierProviderController;
+
+  @Autowired
   private MockMvc mockMvc;
 
   @LocalServerPort
@@ -93,7 +96,7 @@ public class AnnotationProcessorApplicationTests {
 
     repository.findAllByEmail("");
 
-    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+    FrontierRequestMessage requestBody = FrontierRequestMessage.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(ImmutableSet.of("email@email.pt"))
@@ -113,26 +116,26 @@ public class AnnotationProcessorApplicationTests {
   @Test
   public void shouldPostUsingFrontierAndReturnSuccessResponse() {
 
-    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+    FrontierRequestMessage requestBody = FrontierRequestMessage.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(ImmutableSet.of("email@email.pt"))
         .build();
 
-    FrontierResponseBody frontierResponseBody = FrontierProviderRESTController
+    FrontierResponseMessage frontierResponseMessage = frontierProviderController
         .doFrontierRemoteRequest(port, requestBody);
 
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
 
-    assertThat(frontierResponseBody.getResponse()).isEqualTo(expectedEmail);
-    assertThat(frontierResponseBody.getStatus().value()).isEqualTo(200);
+    assertThat(frontierResponseMessage.getResponse()).isEqualTo(expectedEmail);
+    assertThat(frontierResponseMessage.getStatus().value()).isEqualTo(200);
     //assertThat(response.getVerboseErrorMessage().isPresent()).isEqualTo(false);
   }
 
   @Test
   public void shouldPostUsingMockMvcAndReturnSuccessResponse() throws Exception {
 
-    FrontierRequestBody requestBody = FrontierRequestBody.builder()
+    FrontierRequestMessage requestBody = FrontierRequestMessage.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(ImmutableSet.of("email@email.pt"))
@@ -146,9 +149,9 @@ public class AnnotationProcessorApplicationTests {
         .andReturn();
 
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
-    FrontierResponseBody response = objectMapper.readValue(
+    FrontierResponseMessage response = objectMapper.readValue(
         mvcResult.getResponse().getContentAsString(),
-        new TypeReference<FrontierResponseBody<List<User>>>() {
+        new TypeReference<FrontierResponseMessage<List<User>>>() {
         });
 
     assertThat(response.getResponse()).isEqualTo(expectedEmail);
@@ -158,7 +161,7 @@ public class AnnotationProcessorApplicationTests {
 
   @Test
   public void shouldProduceRabbitMessageSuccessfully() throws JsonProcessingException {
-    FrontierRequestBody testMessage = FrontierRequestBody.builder()
+    FrontierRequestMessage testMessage = FrontierRequestMessage.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
         .methodParams(

@@ -3,10 +3,9 @@ package com.frontier.api.annotationprocessor.provider.rest;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.NO_FRONTIER_USAGE;
 
+import com.frontier.api.annotationprocessor.api.FrontierApiRegisterClient;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
-import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
-import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
 import com.frontier.api.annotationprocessor.domain.Guarantee;
 import com.frontier.api.annotationprocessor.provider.service.FrontierRequestHandler;
 import java.util.HashMap;
@@ -26,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
 @RestController
-public class FrontierProviderRESTController implements Ordered {
+public class FrontierProviderController implements Ordered {
 
   private final Map<String, FrontierRequestHandler> controllersEndpoint = new HashMap<>();
 
@@ -34,27 +33,35 @@ public class FrontierProviderRESTController implements Ordered {
 
   private final GenericWebApplicationContext context;
 
+  private final FrontierApiRegisterClient frontierAPIRegisterClient;
+
   @Autowired
-  public FrontierProviderRESTController(GenericWebApplicationContext context) {
+  public FrontierProviderController(GenericWebApplicationContext context,
+      FrontierApiRegisterClient frontierAPIRegisterClient) {
     this.context = context;
+    this.frontierAPIRegisterClient = frontierAPIRegisterClient;
   }
 
-  public static FrontierResponseBody doFrontierRemoteRequest(
-      int port, FrontierRequestBody frontierRequestBody) {
+  public FrontierResponseMessage doFrontierRemoteRequest(
+      int port, FrontierRequestMessage frontierRequestMessage) {
+    //TODO remove port, and use serviceName
+    Optional<String> serviceName = this.frontierAPIRegisterClient
+        .resolveServiceName(frontierRequestMessage.getBeanName(),
+            frontierRequestMessage.getMethodName());
     final String url =
-        "http://localhost:" + port + FRONTIER_ENDPOINT + frontierRequestBody.getBeanName();
+        "http://localhost:" + port + FRONTIER_ENDPOINT + frontierRequestMessage.getBeanName();
     RestTemplate restTemplate = new RestTemplate();
 
-    ResponseEntity<FrontierResponseBody> response = restTemplate
-        .postForEntity(url, frontierRequestBody, FrontierResponseBody.class);
+    ResponseEntity<FrontierResponseMessage> response = restTemplate
+        .postForEntity(url, frontierRequestMessage, FrontierResponseMessage.class);
 
     return response.getBody();
   }
 
   @RequestMapping(FRONTIER_ENDPOINT + "/**")
-  public ResponseEntity<FrontierResponseBody> handleRequests(HttpServletRequest request,
+  public ResponseEntity<FrontierResponseMessage> handleRequests(HttpServletRequest request,
       HttpServletResponse response,
-      @RequestBody FrontierRequestBody body) {
+      @RequestBody FrontierRequestMessage body) {
 
     Optional<FrontierRepositoryWrapper> frontierRepositoryWrapperOpt = Optional.empty();
     try {
@@ -80,7 +87,7 @@ public class FrontierProviderRESTController implements Ordered {
 
     String requestURI = request.getRequestURI();
 
-    FrontierResponseBody frontierResponseBody =
+    FrontierResponseMessage frontierResponseMessage =
         controllersEndpoint
             .entrySet()
             .stream()
@@ -89,14 +96,14 @@ public class FrontierProviderRESTController implements Ordered {
             .findFirst()
             .orElse(FRONTIER_PROCESSOR_ERROR);
 
-    return buildFrontierResponseEntity(frontierResponseBody);
+    return buildFrontierResponseEntity(frontierResponseMessage);
   }
 
-  private ResponseEntity<FrontierResponseBody> buildFrontierResponseEntity(
-      FrontierResponseBody frontierResponseBody) {
+  private ResponseEntity<FrontierResponseMessage> buildFrontierResponseEntity(
+      FrontierResponseMessage frontierResponseMessage) {
     return new ResponseEntity<>(
-        frontierResponseBody,
-        frontierResponseBody.getStatus()
+        frontierResponseMessage,
+        frontierResponseMessage.getStatus()
     );
   }
 

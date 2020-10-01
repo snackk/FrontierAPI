@@ -21,7 +21,8 @@ public class FrontierProviderAMQPConfig {
   public static String ROUTING_KEY = "";
 
   @Autowired
-  public FrontierProviderAMQPConfig(@Value("${queue-name}") String frontierQueueName) {
+  public FrontierProviderAMQPConfig(
+      @Value("${frontier-rabbitmq-queue-name}") String frontierQueueName) {
     this.QUEUE = frontierQueueName;
     this.EXCHANGE_NAME = frontierQueueName;
   }

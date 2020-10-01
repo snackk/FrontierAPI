@@ -2,6 +2,7 @@ package com.frontier.api.annotationprocessor.provider.properties;
 
 import static com.frontier.api.annotationprocessor.provider.repository.FrontierProviderRepositoryAnnotationProcessor.BEAN_SUFFIX_NAME;
 
+import com.frontier.api.annotationprocessor.api.FrontierApiRegisterClient;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
@@ -22,8 +23,12 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
   private final GenericWebApplicationContext context;
 
-  public FrontierPropertiesAnnotationProcessor(GenericWebApplicationContext context) {
+  private final FrontierApiRegisterClient frontierAPIRegisterClient;
+
+  public FrontierPropertiesAnnotationProcessor(GenericWebApplicationContext context,
+      FrontierApiRegisterClient frontierAPIRegisterClient) {
     this.context = context;
+    this.frontierAPIRegisterClient = frontierAPIRegisterClient;
   }
 
   private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
@@ -81,6 +86,9 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
     frontierRepositoryWrapper
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
+
+    this.frontierAPIRegisterClient.register(frontierRepositoryIdentity.getBeanName(),
+        frontierRepositoryProperty.getMethodName());
   }
 
   private Optional<Guarantee> getMethodGuarantee(String guarantee) {

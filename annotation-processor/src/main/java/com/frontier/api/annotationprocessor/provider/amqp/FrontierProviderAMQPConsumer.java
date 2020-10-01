@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
-import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
 import com.frontier.api.annotationprocessor.domain.Guarantee;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierRequestMessage;
 import com.frontier.api.annotationprocessor.provider.service.FrontierRequestHandler;
 import java.util.Optional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -23,12 +23,12 @@ public class FrontierProviderAMQPConsumer {
     this.context = context;
   }
 
-  @RabbitListener(queues = "${queue-name}")
+  @RabbitListener(queues = "${frontier-rabbitmq-queue-name}")
   public void consumeMessage(String jsonPayload) {
-    Optional<FrontierRequestBody> requestBodyOpt = Optional.empty();
+    Optional<FrontierRequestMessage> requestBodyOpt = Optional.empty();
     try {
       requestBodyOpt = Optional
-          .of(new ObjectMapper().readValue(jsonPayload, FrontierRequestBody.class));
+          .of(new ObjectMapper().readValue(jsonPayload, FrontierRequestMessage.class));
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
@@ -37,7 +37,7 @@ public class FrontierProviderAMQPConsumer {
       return;
     }
 
-    FrontierRequestBody requestBody = requestBodyOpt.get();
+    FrontierRequestMessage requestBody = requestBodyOpt.get();
     Optional<FrontierRepositoryWrapper> frontierRepositoryWrapperOpt = Optional.empty();
     try {
       frontierRepositoryWrapperOpt = Optional.of(context

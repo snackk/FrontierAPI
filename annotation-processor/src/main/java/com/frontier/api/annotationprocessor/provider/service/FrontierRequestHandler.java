@@ -2,8 +2,8 @@ package com.frontier.api.annotationprocessor.provider.service;
 
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 
-import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
-import com.frontier.api.annotationprocessor.domain.FrontierResponseBody;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierRequestMessage;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierResponseMessage;
 import java.util.Optional;
 import java.util.function.IntFunction;
 import org.springframework.data.repository.CrudRepository;
@@ -16,7 +16,7 @@ public class FrontierRequestHandler {
     this.crudRepository = crudRepository;
   }
 
-  public FrontierResponseBody doFrontierApiRequest(FrontierRequestBody body) {
+  public FrontierResponseMessage doFrontierApiRequest(FrontierRequestMessage body) {
     try {
       Class<?>[] paramTypes = body
           .getMethodParams()
@@ -30,7 +30,7 @@ public class FrontierRequestHandler {
           .of(crudRepository.getClass().getMethod(body.getMethodName(), paramTypes)
               .invoke(crudRepository, paramValues));
 
-      return FrontierResponseBody
+      return FrontierResponseMessage
           .builder()
           .response(response)
           .build();

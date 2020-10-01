@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor.domain;
+package com.frontier.api.annotationprocessor.provider.rest;
 
 import java.util.Optional;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @EqualsAndHashCode
 @Value
-public class FrontierResponseBody<U> {
+public class FrontierResponseMessage<U> {
 
   private U response;
 

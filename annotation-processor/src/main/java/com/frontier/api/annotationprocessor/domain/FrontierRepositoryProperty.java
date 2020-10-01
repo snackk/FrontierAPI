@@ -11,7 +11,4 @@ public class FrontierRepositoryProperty {
 
   private String methodName;
 
-  //TODO will this be needed?
-  //private Class<?> domainType;
-  //private Class<?> idType;
 }

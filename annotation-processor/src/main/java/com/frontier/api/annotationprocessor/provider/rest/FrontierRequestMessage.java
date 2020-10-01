@@ -1,4 +1,4 @@
-package com.frontier.api.annotationprocessor.domain;
+package com.frontier.api.annotationprocessor.provider.rest;
 
 import java.util.Set;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @EqualsAndHashCode
-public class FrontierRequestBody {
+public class FrontierRequestMessage {
 
   private String beanName;
 

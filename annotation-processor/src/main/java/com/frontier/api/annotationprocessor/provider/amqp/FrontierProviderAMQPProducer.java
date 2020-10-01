@@ -2,7 +2,7 @@ package com.frontier.api.annotationprocessor.provider.amqp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.frontier.api.annotationprocessor.domain.FrontierRequestBody;
+import com.frontier.api.annotationprocessor.provider.rest.FrontierRequestMessage;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ public class FrontierProviderAMQPProducer {
     this.rabbitTemplate = rabbitTemplate;
   }
 
-  public void produceMessage(FrontierRequestBody requestBody,
+  public void produceMessage(FrontierRequestMessage requestBody,
       String frontierQueueName) {
     try {
       String json = new ObjectMapper().writeValueAsString(requestBody);
