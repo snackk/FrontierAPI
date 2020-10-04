@@ -87,8 +87,9 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
     frontierRepositoryWrapper
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
 
-    this.frontierAPIRegisterClient.register(frontierRepositoryIdentity.getBeanName(),
-        frontierRepositoryProperty.getMethodName());
+    this.frontierAPIRegisterClient
+        .cacheFrontierApiToRegister(frontierRepositoryIdentity.getBeanName(),
+            frontierRepositoryProperty.getMethodName());
   }
 
   private Optional<Guarantee> getMethodGuarantee(String guarantee) {

@@ -43,13 +43,16 @@ public class FrontierProviderController implements Ordered {
   }
 
   public FrontierResponseMessage doFrontierRemoteRequest(
-      int port, FrontierRequestMessage frontierRequestMessage) {
-    //TODO remove port, and use serviceName
-    Optional<String> serviceName = this.frontierAPIRegisterClient
+      FrontierRequestMessage frontierRequestMessage) {
+
+    //TODO handle cache miss
+    String serviceName = this.frontierAPIRegisterClient
         .resolveServiceName(frontierRequestMessage.getBeanName(),
-            frontierRequestMessage.getMethodName());
-    final String url =
-        "http://localhost:" + port + FRONTIER_ENDPOINT + frontierRequestMessage.getBeanName();
+            frontierRequestMessage.getMethodName())
+        .orElse("TODO");
+
+    String url =
+        serviceName + FRONTIER_ENDPOINT + frontierRequestMessage.getBeanName();
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<FrontierResponseMessage> response = restTemplate
