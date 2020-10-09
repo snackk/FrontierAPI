@@ -3,6 +3,7 @@ package com.frontier.api.annotationprocessor.provider.rest;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.FRONTIER_PROCESSOR_ERROR;
 import static com.frontier.api.annotationprocessor.provider.service.FrontierResourceErrorHandling.NO_FRONTIER_USAGE;
 
+import com.frontier.api.annotationprocessor.api.FrontierApiIdentity;
 import com.frontier.api.annotationprocessor.api.FrontierApiRegisterClient;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryProperty;
 import com.frontier.api.annotationprocessor.domain.FrontierRepositoryWrapper;
@@ -11,8 +12,11 @@ import com.frontier.api.annotationprocessor.provider.service.FrontierRequestHand
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
@@ -35,6 +39,10 @@ public class FrontierProviderController implements Ordered {
 
   private final FrontierApiRegisterClient frontierAPIRegisterClient;
 
+  private final static Function<Pair<String, FrontierApiIdentity>, String> FRONTIER_API_BUILDER = (a) ->
+      a.getLeft()
+          + FRONTIER_ENDPOINT + a.getRight().getBeanName();
+
   @Autowired
   public FrontierProviderController(GenericWebApplicationContext context,
       FrontierApiRegisterClient frontierAPIRegisterClient) {
@@ -43,20 +51,24 @@ public class FrontierProviderController implements Ordered {
   }
 
   public FrontierResponseMessage doFrontierRemoteRequest(
-      FrontierRequestMessage frontierRequestMessage) {
+      FrontierApiIdentity frontierApiIdentity, Set<Object> methodParams) {
 
-    //TODO handle cache miss
-    String serviceName = this.frontierAPIRegisterClient
-        .resolveServiceName(frontierRequestMessage.getBeanName(),
-            frontierRequestMessage.getMethodName())
-        .orElse("TODO");
+    //TODO Fix get here...handle cache miss
+    Pair<String, FrontierApiIdentity> foundFrontierServiceIdentity = this.frontierAPIRegisterClient
+        .resolveServiceName(frontierApiIdentity.getBeanName(), frontierApiIdentity.getMethodName())
+        .get();
 
-    String url =
-        serviceName + FRONTIER_ENDPOINT + frontierRequestMessage.getBeanName();
     RestTemplate restTemplate = new RestTemplate();
 
+    FrontierRequestMessage frontierRequestMessage = FrontierRequestMessage.builder()
+        .beanName(foundFrontierServiceIdentity.getRight().getBeanName())
+        .methodName(foundFrontierServiceIdentity.getRight().getMethodName())
+        .methodParams(methodParams)
+        .build();
+
     ResponseEntity<FrontierResponseMessage> response = restTemplate
-        .postForEntity(url, frontierRequestMessage, FrontierResponseMessage.class);
+        .postForEntity(FRONTIER_API_BUILDER.apply(foundFrontierServiceIdentity),
+            frontierRequestMessage, FrontierResponseMessage.class);
 
     return response.getBody();
   }

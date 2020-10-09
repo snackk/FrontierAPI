@@ -14,12 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frontier.api.annotationprocessor.api.FrontierApiIdentity;
 import com.frontier.api.annotationprocessor.api.FrontierApiRegisterClient;
+import com.frontier.api.annotationprocessor.consumer.TestFrontierRepository;
 import com.frontier.api.annotationprocessor.provider.amqp.FrontierProviderAMQPProducer;
 import com.frontier.api.annotationprocessor.provider.rest.FrontierProviderController;
 import com.frontier.api.annotationprocessor.provider.rest.FrontierRequestMessage;
 import com.frontier.api.annotationprocessor.provider.rest.FrontierResponseMessage;
-import com.frontier.api.annotationprocessor.test.TestFrontierRepository;
 import com.frontier.api.annotationprocessor.test.User;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -50,7 +51,7 @@ import org.testcontainers.containers.MySQLContainer;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import(TestFrontierRepository.class)
+@Import({TestFrontierRepository.class, TestFrontierRepository.class})
 public class AnnotationProcessorApplicationTests {
 
   static class Initializer
@@ -75,7 +76,10 @@ public class AnnotationProcessorApplicationTests {
   public WireMockRule wireMockRule = new WireMockRule(8090);
 
   @Autowired
-  private TestFrontierRepository repository;
+  private com.frontier.api.annotationprocessor.test.TestFrontierRepository repository;
+
+  @Autowired
+  private com.frontier.api.annotationprocessor.consumer.TestFrontierRepository testFrontierConsumerRepository;
 
   @Autowired
   private FrontierProviderController frontierProviderController;
@@ -137,14 +141,13 @@ public class AnnotationProcessorApplicationTests {
                 "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
                     + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
 
-    FrontierRequestMessage requestBody = FrontierRequestMessage.builder()
+    FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
-        .methodParams(ImmutableSet.of("email@email.pt"))
         .build();
 
     FrontierResponseMessage frontierResponseMessage = frontierProviderController
-        .doFrontierRemoteRequest(requestBody);
+        .doFrontierRemoteRequest(frontierApiIdentity, ImmutableSet.of("email@email.pt"));
 
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
 
@@ -175,14 +178,13 @@ public class AnnotationProcessorApplicationTests {
     //will flush cached values and replace with new ones
     frontierApiRegisterClient.pullForCache();
 
-    FrontierRequestMessage requestBody = FrontierRequestMessage.builder()
+    FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
         .beanName("testFrontierRepository")
         .methodName("findAllByEmail")
-        .methodParams(ImmutableSet.of("email@email.pt"))
         .build();
 
     FrontierResponseMessage frontierResponseMessage = frontierProviderController
-        .doFrontierRemoteRequest(requestBody);
+        .doFrontierRemoteRequest(frontierApiIdentity, ImmutableSet.of("email@email.pt"));
 
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
 
@@ -231,6 +233,24 @@ public class AnnotationProcessorApplicationTests {
     String json = new ObjectMapper().writeValueAsString(testMessage);
     Mockito.verify(this.rabbitTemplateMock)
         .convertAndSend(eq(testQueueName), eq(""), eq(json));
+  }
+
+  @Test
+  public void testSomething() {
+    stubFor(WireMock.post(urlEqualTo("/register"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+                "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
+
+    List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
+
+    List<User> frontierConsumerRequest = testFrontierConsumerRepository
+        .findAllByEmail(ImmutableSet.of("email@email.pt"));
+
+    assertThat(expectedEmail).isEqualTo(frontierConsumerRequest);
   }
 
 }

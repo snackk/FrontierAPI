@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -62,17 +65,21 @@ public class FrontierApiRegisterClient {
     }
   }
 
-  public Optional<String> resolveServiceName(String beanName, String methodName) {
+  public Optional<Pair<String, FrontierApiIdentity>> resolveServiceName(String beanName,
+      String methodName) {
+
     //TODO Register should be the end of spring bean start life cycle
     register();
 
-    FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
-        .beanName(beanName)
-        .methodName(methodName)
-        .build();
-
     return cachedFrontierIdentitiesByServiceName.keySet().stream()
-        .filter(a -> cachedFrontierIdentitiesByServiceName.get(a).contains(frontierApiIdentity))
+        .flatMap(a ->
+            cachedFrontierIdentitiesByServiceName.get(a).stream()
+                .filter(
+                    c -> StringUtils.containsIgnoreCase(beanName, c.getBeanName()) && StringUtils
+                        .containsIgnoreCase(methodName, c.getMethodName()))
+                .map(d -> Stream.of(Pair.of(a, d)))
+                .findFirst()
+                .orElse(Stream.empty()))
         .findFirst();
   }
 
