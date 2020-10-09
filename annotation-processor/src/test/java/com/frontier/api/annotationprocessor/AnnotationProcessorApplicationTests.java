@@ -248,7 +248,7 @@ public class AnnotationProcessorApplicationTests {
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
 
     List<User> frontierConsumerRequest = testFrontierConsumerRepository
-        .findAllByEmail(ImmutableSet.of("email@email.pt"));
+        .findAllByEmail("email@email.pt");
 
     assertThat(expectedEmail).isEqualTo(frontierConsumerRequest);
   }

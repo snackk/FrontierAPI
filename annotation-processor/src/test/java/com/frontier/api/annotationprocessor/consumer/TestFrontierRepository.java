@@ -1,9 +1,7 @@
 package com.frontier.api.annotationprocessor.consumer;
 
-import com.frontier.api.annotationprocessor.consumer.FrontierConsumerRepository;
 import com.frontier.api.annotationprocessor.test.User;
 import java.util.List;
-import java.util.Set;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class TestFrontierRepository {
 
   @FrontierConsumerRepository
-  public List<User> findAllByEmail(Set<String> asd) {
+  public List<User> findAllByEmail(String email) {
     return null;
   }
 
