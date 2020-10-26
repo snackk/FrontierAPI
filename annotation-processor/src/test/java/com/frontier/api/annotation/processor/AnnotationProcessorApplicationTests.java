@@ -140,7 +140,7 @@ public class AnnotationProcessorApplicationTests {
             .withHeader("Content-Type", "application/json")
             .withBody(
                 "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
-                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\",\"guarantee\":\"SYNCHRONOUS\"}]}}")));
 
     FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
         .beanName("testFrontierRepository")
@@ -166,7 +166,7 @@ public class AnnotationProcessorApplicationTests {
             .withHeader("Content-Type", "application/json")
             .withBody(
                 "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
-                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\",\"guarantee\":\"SYNCHRONOUS\"}]}}")));
 
     stubFor(WireMock.post(urlEqualTo("/register"))
         .willReturn(aResponse()
@@ -174,7 +174,7 @@ public class AnnotationProcessorApplicationTests {
             .withHeader("Content-Type", "application/json")
             .withBody(
                 "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
-                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\",\"guarantee\":\"SYNCHRONOUS\"}]}}")));
 
     //will flush cached values and replace with new ones
     frontierApiRegisterService.pullForCache();
@@ -244,7 +244,7 @@ public class AnnotationProcessorApplicationTests {
             .withHeader("Content-Type", "application/json")
             .withBody(
                 "{\"frontierIdentitiesByServiceName\":{\"http://localhost:" + port
-                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\"}]}}")));
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\",\"guarantee\":\"SYNCHRONOUS\"}]}}")));
 
     List<User> expectedEmail = repository.findAllByEmail("email@email.pt");
 
