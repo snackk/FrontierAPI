@@ -14,4 +14,6 @@ public class FrontierApiNode {
   private String beanName;
 
   private String methodName;
+
+  private String guarantee;
 }

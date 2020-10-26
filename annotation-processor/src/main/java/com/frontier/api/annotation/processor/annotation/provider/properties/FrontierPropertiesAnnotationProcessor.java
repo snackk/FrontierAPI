@@ -73,20 +73,18 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
         .methodName(methodName)
         .build();
 
-    FrontierRepositoryWrapperService frontierRepositoryWrapperService = context
-        .getBean(FrontierRepositoryWrapperService.class);
-
     FrontierRepositoryIdentity frontierRepositoryIdentity = FrontierRepositoryIdentity.builder()
         .classpath(classPath)
         .beanName(beanName)
         .build();
 
+    FrontierRepositoryWrapperService frontierRepositoryWrapperService = context
+        .getBean(FrontierRepositoryWrapperService.class);
     frontierRepositoryWrapperService
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
 
     this.frontierAPIRegisterService
-        .cacheFrontierApiToRegister(frontierRepositoryIdentity.getBeanName(),
-            frontierRepositoryProperty.getMethodName());
+        .cacheFrontierApiToRegister(beanName, methodName, guarantee);
   }
 
   @Override

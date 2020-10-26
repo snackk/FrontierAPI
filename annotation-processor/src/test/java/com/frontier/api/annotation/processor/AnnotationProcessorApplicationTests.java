@@ -15,13 +15,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontier.api.annotation.processor.annotation.consumer.TestFrontierRepository;
-import com.frontier.api.annotation.processor.service.FrontierApiRegisterService;
-import com.frontier.api.annotation.processor.test.User;
+import com.frontier.api.annotation.processor.controller.amqp.FrontierAPIAMQPProducer;
+import com.frontier.api.annotation.processor.controller.rest.FrontierAPIController;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiIdentity;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiRequestMessage;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiResponseMessage;
-import com.frontier.api.annotation.processor.controller.amqp.FrontierAPIAMQPProducer;
-import com.frontier.api.annotation.processor.controller.rest.FrontierAPIController;
+import com.frontier.api.annotation.processor.service.FrontierApiRegisterService;
+import com.frontier.api.annotation.processor.test.User;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableSet;
@@ -104,7 +104,8 @@ public class AnnotationProcessorApplicationTests {
   @Before
   public void setUp() {
     this.rabbitTemplateMock = Mockito.mock(RabbitTemplate.class);
-    this.producer = new FrontierAPIAMQPProducer(this.rabbitTemplateMock, frontierApiRegisterService);
+    this.producer = new FrontierAPIAMQPProducer(this.rabbitTemplateMock,
+        frontierApiRegisterService);
   }
 
   @Test
@@ -236,7 +237,7 @@ public class AnnotationProcessorApplicationTests {
   }
 
   @Test
-  public void testProviderAnnotation() {
+  public void syncProviderAnnotationShouldRespondSuccessfully() {
     stubFor(WireMock.post(urlEqualTo("/register"))
         .willReturn(aResponse()
             .withStatus(200)
@@ -253,6 +254,26 @@ public class AnnotationProcessorApplicationTests {
     assertThat(expectedEmail).isEqualTo(frontierConsumerRequest);
   }
 
-  //TODO Build SAVE test repo, (async call)
+  @Test
+  @Ignore
+  public void asyncProviderAnnotationShouldRespondSuccessfully() throws JsonProcessingException {
+    stubFor(WireMock.post(urlEqualTo("/register"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+                "{\"frontierIdentitiesByServiceName\":{\"annotation-processor\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"saveUser\",\"guarantee\":\"ASYNCHRONOUS\"}],"
+                    + "\"http://localhost:" + port
+                    + "\":[{\"beanName\":\"testFrontierRepository\",\"methodName\":\"findAllByEmail\",\"guarantee\":\"SYNCHRONOUS\"}]}}")));
+
+    User expectedUser = new User("first", "last", "email");
+    testFrontierConsumerRepository
+        .saveUser(expectedUser.getFirstName(), expectedUser.getLastName(), expectedUser.getEmail());
+
+    User frontierConsumerRequest = repository
+        .findAllByEmail("email").get(0);
+
+    assertThat(expectedUser).isEqualTo(frontierConsumerRequest);
+  }
 
 }

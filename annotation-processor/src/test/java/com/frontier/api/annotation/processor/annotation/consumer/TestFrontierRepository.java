@@ -14,4 +14,9 @@ public class TestFrontierRepository {
     return null;
   }
 
+  @FrontierConsumerRepository(guarantee = "asynchronous")
+  public Void saveUser(String firstName, String lastName, String email) {
+    return null;
+  }
+
 }

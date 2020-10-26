@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontier.api.annotation.processor.immutables.api.FrontierAPIInterface;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiIdentity;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiRequestMessage;
+import com.frontier.api.annotation.processor.immutables.domain.Guarantee;
 import com.frontier.api.annotation.processor.service.FrontierApiRegisterService;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,7 +41,8 @@ public class FrontierAPIAMQPProducer implements FrontierAPIInterface<Void> {
 
     //TODO Fix get here...handle cache miss
     Pair<String, FrontierApiIdentity> foundFrontierServiceIdentity = this.frontierAPIRegisterService
-        .resolveServiceName(frontierApiIdentity.getBeanName(), frontierApiIdentity.getMethodName())
+        .resolveServiceName(frontierApiIdentity.getBeanName(), frontierApiIdentity.getMethodName(),
+            Guarantee.ASYNCHRONOUS)
         .get();
 
     FrontierApiRequestMessage frontierApiRequestMessage = FrontierApiRequestMessage.builder()
@@ -51,7 +53,7 @@ public class FrontierAPIAMQPProducer implements FrontierAPIInterface<Void> {
 
     try {
       String messagePayload = new ObjectMapper().writeValueAsString(frontierApiRequestMessage);
-      rabbitTemplate.convertAndSend("TODOOO", "", messagePayload);
+      rabbitTemplate.convertAndSend(foundFrontierServiceIdentity.getLeft(), "", messagePayload);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }

@@ -41,14 +41,15 @@ public class FrontierConsumerRepositoryAnnotationAspect {
 
     applicationContext.getBeanNamesForType(method.getDeclaringClass());
 
-    FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
-        .beanName(method.getDeclaringClass().getName())
-        .methodName(method.getName())
-        .build();
-
     Guarantee guarantee = Guarantee.getMethodGuarantee(
         method.getAnnotation(FrontierConsumerRepository.class).guarantee())
         .orElseThrow(() -> new IllegalArgumentException(WRONG_GUARANTEE));
+
+    FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
+        .beanName(method.getDeclaringClass().getName())
+        .methodName(method.getName())
+        .guarantee(guarantee.toString())
+        .build();
 
     if (guarantee.equals(Guarantee.SYNCHRONOUS)) {
       return frontierProviderController

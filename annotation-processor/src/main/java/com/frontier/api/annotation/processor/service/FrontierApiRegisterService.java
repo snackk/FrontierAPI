@@ -4,6 +4,7 @@ import com.frontier.api.annotation.processor.immutables.api.FrontierApiIdentity;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiNode;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiRegisterRequestMessage;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiRegisterResponseMessage;
+import com.frontier.api.annotation.processor.immutables.domain.Guarantee;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,12 +38,13 @@ public class FrontierApiRegisterService {
     this.FRONTIER_API_SERVICE_NAME_URI = frontierApiServiceName;
   }
 
-  public void cacheFrontierApiToRegister(String beanName, String methodName) {
+  public void cacheFrontierApiToRegister(String beanName, String methodName, Guarantee guarantee) {
     FrontierApiNode frontierApiNode = FrontierApiNode
         .builder()
         .serviceName(springApplicationName)
         .beanName(beanName)
         .methodName(methodName)
+        .guarantee(guarantee.name())
         .build();
 
     frontierApiLeftToRegister.add(frontierApiNode);
@@ -56,7 +58,7 @@ public class FrontierApiRegisterService {
           .builder()
           .frontierApiBatchMessages(frontierApiLeftToRegister)
           .build();
-
+      //TODO service-name is not accurate
       ResponseEntity<FrontierApiRegisterResponseMessage> response = restTemplate
           .postForEntity(FRONTIER_API_SERVICE_NAME_URI + "/register",
               registerRequestMessage,
@@ -70,7 +72,7 @@ public class FrontierApiRegisterService {
   }
 
   public Optional<Pair<String, FrontierApiIdentity>> resolveServiceName(String beanName,
-      String methodName) {
+      String methodName, Guarantee guarantee) {
 
     //TODO Register should be the end of spring bean life cycle
     register();
@@ -79,8 +81,9 @@ public class FrontierApiRegisterService {
         .flatMap(a ->
             cachedFrontierIdentitiesByServiceName.get(a).stream()
                 .filter(
-                    c -> StringUtils.containsIgnoreCase(beanName, c.getBeanName()) && StringUtils
-                        .containsIgnoreCase(methodName, c.getMethodName()))
+                    c -> StringUtils.containsIgnoreCase(beanName, c.getBeanName())
+                        && StringUtils.containsIgnoreCase(methodName, c.getMethodName())
+                        && StringUtils.containsIgnoreCase(guarantee.toString(), c.getGuarantee()))
                 .map(d -> Stream.of(Pair.of(a, d)))
                 .findFirst()
                 .orElse(Stream.empty()))

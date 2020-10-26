@@ -12,4 +12,6 @@ public class FrontierApiIdentity {
   private String beanName;
 
   private String methodName;
+
+  private String guarantee;
 }

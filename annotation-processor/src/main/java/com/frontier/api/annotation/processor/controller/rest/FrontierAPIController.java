@@ -54,7 +54,8 @@ public class FrontierAPIController implements Ordered,
 
     //TODO Fix get here...handle cache miss
     Pair<String, FrontierApiIdentity> foundFrontierServiceIdentity = this.frontierAPIRegisterService
-        .resolveServiceName(frontierApiIdentity.getBeanName(), frontierApiIdentity.getMethodName())
+        .resolveServiceName(frontierApiIdentity.getBeanName(), frontierApiIdentity.getMethodName(),
+            Guarantee.SYNCHRONOUS)
         .get();
 
     RestTemplate restTemplate = new RestTemplate();
