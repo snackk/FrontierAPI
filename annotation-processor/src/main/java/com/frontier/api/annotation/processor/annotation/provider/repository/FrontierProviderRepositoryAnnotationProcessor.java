@@ -3,6 +3,8 @@ package com.frontier.api.annotation.processor.annotation.provider.repository;
 import com.frontier.api.annotation.processor.immutables.domain.FrontierRepositoryIdentity;
 import com.frontier.api.annotation.processor.service.FrontierRepositoryWrapperService;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -16,6 +18,8 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostProcessor, Ordered {
 
   private final GenericWebApplicationContext context;
+  private final static Logger LOG = LoggerFactory
+      .getLogger(FrontierProviderRepositoryAnnotationProcessor.class);
 
   public final static String BEAN_SUFFIX_NAME = "FrontierRepository";
 
@@ -62,6 +66,8 @@ public class FrontierProviderRepositoryAnnotationProcessor implements BeanPostPr
             .classpath(repositoryInformation.getRepositoryInterface().getName())
             .beanName(beanName)
             .build();
+
+        LOG.info("Registering Frontier repository {}", frontierRepositoryIdentity);
 
         FrontierRepositoryWrapperService.getInstance()
             .addFrontierRepositoryIdentity(frontierRepositoryIdentity);

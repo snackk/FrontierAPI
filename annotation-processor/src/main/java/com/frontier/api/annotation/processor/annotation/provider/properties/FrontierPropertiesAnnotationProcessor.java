@@ -8,6 +8,8 @@ import com.frontier.api.annotation.processor.immutables.domain.Guarantee;
 import com.frontier.api.annotation.processor.service.FrontierApiRegisterService;
 import com.frontier.api.annotation.processor.service.FrontierRepositoryWrapperService;
 import java.lang.reflect.Method;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
@@ -24,6 +26,9 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
   private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
       + "Valid guarantees are: synchronous, asynchronous and best-effort.";
+
+  private final static Logger LOG = LoggerFactory
+      .getLogger(FrontierPropertiesAnnotationProcessor.class);
 
   public FrontierPropertiesAnnotationProcessor(GenericWebApplicationContext context,
       FrontierApiRegisterService frontierAPIRegisterService) {
@@ -78,6 +83,8 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
         .beanName(beanName)
         .build();
 
+    LOG.info("Registering Frontier properties {} for {}", frontierRepositoryProperty,
+        frontierRepositoryIdentity);
     FrontierRepositoryWrapperService frontierRepositoryWrapperService = context
         .getBean(FrontierRepositoryWrapperService.class);
     frontierRepositoryWrapperService
