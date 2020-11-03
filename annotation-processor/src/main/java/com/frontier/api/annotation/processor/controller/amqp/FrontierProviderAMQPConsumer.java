@@ -9,17 +9,20 @@ import com.frontier.api.annotation.processor.service.FrontierRepositoryWrapperSe
 import com.frontier.api.annotation.processor.service.FrontierRequestService;
 import java.util.Optional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 
-@Service
+//@Service
 public class FrontierProviderAMQPConsumer {
 
-  private final GenericWebApplicationContext context;
+  private final FrontierRepositoryWrapperService frontierRepositoryWrapperService;
+  private final ApplicationContext context;
 
-  public FrontierProviderAMQPConsumer(GenericWebApplicationContext context) {
+  public FrontierProviderAMQPConsumer(
+      ApplicationContext context,
+      FrontierRepositoryWrapperService frontierRepositoryWrapperService) {
+    this.frontierRepositoryWrapperService = frontierRepositoryWrapperService;
     this.context = context;
   }
 
@@ -38,14 +41,7 @@ public class FrontierProviderAMQPConsumer {
     }
 
     FrontierApiRequestMessage requestBody = requestBodyOpt.get();
-    Optional<FrontierRepositoryWrapperService> frontierRepositoryWrapperOpt = Optional.empty();
-    try {
-      frontierRepositoryWrapperOpt = Optional.of(context
-          .getBean(FrontierRepositoryWrapperService.class));
-    } catch (NoSuchBeanDefinitionException e) {
-    }
-
-    frontierRepositoryWrapperOpt.ifPresent(frw -> frw.getFrontierRepositoryProperties()
+    frontierRepositoryWrapperService.getFrontierRepositoryProperties()
         .forEach((key, value) -> {
           if (value.stream().map(FrontierRepositoryProperty::getGuarantee)
               .anyMatch(p -> p.equals(Guarantee.ASYNCHRONOUS) || p.equals(Guarantee.BEST_EFFORT))) {
@@ -55,6 +51,6 @@ public class FrontierProviderAMQPConsumer {
                 crudRepository);
             frontierRequestService.doFrontierApiRequest(requestBody);
           }
-        }));
+        });
   }
 }

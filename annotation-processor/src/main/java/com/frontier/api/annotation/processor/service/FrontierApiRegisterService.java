@@ -20,23 +20,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-@Service
+//@Service
 public class FrontierApiRegisterService {
 
-  private final String FRONTIER_API_SERVICE_NAME_URI;
+  @Value("${frontier-api:http://FRONTIER-API:8090}")
+  private String FRONTIER_API_SERVICE_NAME_URI;
 
-  private final String springApplicationName;
+  @Value("${spring-application-name}")
+  private String springApplicationName;
 
   private Map<String, List<FrontierApiIdentity>> cachedFrontierIdentitiesByServiceName = new HashMap<>();
 
   private List<FrontierApiNode> frontierApiLeftToRegister = new ArrayList<>();
-
-  public FrontierApiRegisterService(
-      @Value("${spring-application-name}") String springApplicationName,
-      @Value("${frontier-api:http://FRONTIER-API:8090}") String frontierApiServiceName) {
-    this.springApplicationName = springApplicationName;
-    this.FRONTIER_API_SERVICE_NAME_URI = frontierApiServiceName;
-  }
 
   public void cacheFrontierApiToRegister(String beanName, String methodName, Guarantee guarantee) {
     FrontierApiNode frontierApiNode = FrontierApiNode
@@ -59,15 +54,15 @@ public class FrontierApiRegisterService {
           .frontierApiBatchMessages(frontierApiLeftToRegister)
           .build();
       //TODO service-name is not accurate
-      ResponseEntity<FrontierApiRegisterResponseMessage> response = restTemplate
+/*      ResponseEntity<FrontierApiRegisterResponseMessage> response = restTemplate
           .postForEntity(FRONTIER_API_SERVICE_NAME_URI + "/register",
               registerRequestMessage,
-              FrontierApiRegisterResponseMessage.class);
+              FrontierApiRegisterResponseMessage.class);*/
 
       frontierApiLeftToRegister = ImmutableList.of();
 
-      cachedFrontierIdentitiesByServiceName = Objects.requireNonNull(response.getBody())
-          .getFrontierIdentitiesByServiceName();
+/*      cachedFrontierIdentitiesByServiceName = Objects.requireNonNull(response.getBody())
+          .getFrontierIdentitiesByServiceName();*/
     }
   }
 

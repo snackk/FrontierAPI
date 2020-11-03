@@ -16,12 +16,11 @@ import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 
-@Component
+//@Component
 public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor, Ordered {
 
-  private final GenericWebApplicationContext context;
+  private final FrontierRepositoryWrapperService frontierRepositoryWrapperService;
   private final FrontierApiRegisterService frontierAPIRegisterService;
 
   private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
@@ -30,9 +29,10 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
   private final static Logger LOG = LoggerFactory
       .getLogger(FrontierPropertiesAnnotationProcessor.class);
 
-  public FrontierPropertiesAnnotationProcessor(GenericWebApplicationContext context,
+  public FrontierPropertiesAnnotationProcessor(
+      FrontierRepositoryWrapperService frontierRepositoryWrapperService,
       FrontierApiRegisterService frontierAPIRegisterService) {
-    this.context = context;
+    this.frontierRepositoryWrapperService = frontierRepositoryWrapperService;
     this.frontierAPIRegisterService = frontierAPIRegisterService;
   }
 
@@ -85,8 +85,7 @@ public class FrontierPropertiesAnnotationProcessor implements BeanPostProcessor,
 
     LOG.info("Registering Frontier properties {} for {}", frontierRepositoryProperty,
         frontierRepositoryIdentity);
-    FrontierRepositoryWrapperService frontierRepositoryWrapperService = context
-        .getBean(FrontierRepositoryWrapperService.class);
+
     frontierRepositoryWrapperService
         .addFrontierRepositoryProperty(frontierRepositoryIdentity, frontierRepositoryProperty);
 

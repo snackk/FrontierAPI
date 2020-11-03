@@ -12,7 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class FrontierAPIAMQPProducer implements FrontierAPIInterface<Void> {
 
   private final RabbitTemplate rabbitTemplate;
@@ -25,7 +25,8 @@ public class FrontierAPIAMQPProducer implements FrontierAPIInterface<Void> {
     this.frontierAPIRegisterService = frontierAPIRegisterService;
   }
 
-  public void produceMessage(FrontierApiRequestMessage requestBody,
+  public void produceMessage(
+      FrontierApiRequestMessage requestBody,
       String frontierQueueName) {
     try {
       String json = new ObjectMapper().writeValueAsString(requestBody);

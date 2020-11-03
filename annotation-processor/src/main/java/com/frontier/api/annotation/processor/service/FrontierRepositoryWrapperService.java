@@ -13,18 +13,6 @@ public class FrontierRepositoryWrapperService {
   private final Map<FrontierRepositoryIdentity, Set<FrontierRepositoryProperty>> frontierRepositoryProperties =
       new HashMap<>();
 
-  private static FrontierRepositoryWrapperService frontierRepositoryWrapperServiceInstance;
-
-  public static FrontierRepositoryWrapperService getInstance() {
-    if (frontierRepositoryWrapperServiceInstance == null) {
-      frontierRepositoryWrapperServiceInstance = new FrontierRepositoryWrapperService();
-    }
-    return frontierRepositoryWrapperServiceInstance;
-  }
-
-  private FrontierRepositoryWrapperService() {
-  }
-
   public void addFrontierRepositoryProperty(FrontierRepositoryIdentity frontierRepositoryIdentity,
       FrontierRepositoryProperty frontierRepositoryProperty) {
     Set<FrontierRepositoryProperty> updatedFrontierProperties = Optional

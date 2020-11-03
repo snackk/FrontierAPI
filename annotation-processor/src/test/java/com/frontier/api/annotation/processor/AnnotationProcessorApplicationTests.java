@@ -1,6 +1,5 @@
 package com.frontier.api.annotation.processor;
 
-import static com.frontier.api.annotation.processor.service.FrontierResourceErrorHandling.NO_FRONTIER_USAGE_STRING;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -15,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frontier.api.annotation.processor.annotation.consumer.TestFrontierRepository;
+import com.frontier.api.annotation.processor.config.SpringBootFrontierAutoConfiguration;
 import com.frontier.api.annotation.processor.controller.amqp.FrontierAPIAMQPProducer;
 import com.frontier.api.annotation.processor.controller.rest.FrontierAPIController;
 import com.frontier.api.annotation.processor.immutables.api.FrontierApiIdentity;
@@ -43,6 +43,7 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -51,7 +52,8 @@ import org.testcontainers.containers.MySQLContainer;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import({TestFrontierRepository.class, TestFrontierRepository.class})
+//@Import({TestFrontierRepository.class, TestFrontierRepository.class})
+@ContextConfiguration(classes = SpringBootFrontierAutoConfiguration.class)
 public class AnnotationProcessorApplicationTests {
 
   static class Initializer
@@ -128,7 +130,7 @@ public class AnnotationProcessorApplicationTests {
         .andReturn();
 
     assertThat(mvcResult.getResponse().getContentAsString())
-        .contains(NO_FRONTIER_USAGE_STRING);
+        .contains("No Frontier annotation found. Check the documentation for usage.");
   }
 
   @Test

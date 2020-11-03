@@ -10,27 +10,23 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Aspect
-@Component
+//@Component
 public class FrontierConsumerRepositoryAnnotationAspect {
 
   private final FrontierAPIAMQPProducer frontierProviderAMQPProducer;
   private final FrontierAPIController frontierProviderController;
-  private final ApplicationContext applicationContext;
 
   private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
       + "Valid guarantees are: synchronous, asynchronous and best-effort.";
 
   public FrontierConsumerRepositoryAnnotationAspect(
       FrontierAPIAMQPProducer frontierProviderAMQPProducer,
-      FrontierAPIController frontierProviderController,
-      ApplicationContext context) {
+      FrontierAPIController frontierProviderController) {
     this.frontierProviderAMQPProducer = frontierProviderAMQPProducer;
     this.frontierProviderController = frontierProviderController;
-    this.applicationContext = context;
   }
 
   @Around("@annotation(com.frontier.api.annotation.processor.annotation.consumer.FrontierConsumerRepository)")
@@ -38,8 +34,6 @@ public class FrontierConsumerRepositoryAnnotationAspect {
 
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     Method method = signature.getMethod();
-
-    applicationContext.getBeanNamesForType(method.getDeclaringClass());
 
     Guarantee guarantee = Guarantee.getMethodGuarantee(
         method.getAnnotation(FrontierConsumerRepository.class).guarantee())

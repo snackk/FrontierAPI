@@ -12,14 +12,12 @@ import com.frontier.api.annotation.processor.service.FrontierRequestService;
 import com.frontier.api.annotation.processor.service.FrontierResourceErrorHandling;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +25,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 
-@RestController
+//@RestController
 public class FrontierAPIController implements Ordered,
     FrontierAPIInterface<FrontierApiResponseMessage> {
 
@@ -39,13 +36,16 @@ public class FrontierAPIController implements Ordered,
           + FRONTIER_ENDPOINT + a.getRight().getBeanName();
 
   private final Map<String, FrontierRequestService> controllersEndpoint = new HashMap<>();
-  private final GenericWebApplicationContext context;
+  private final FrontierRepositoryWrapperService frontierRepositoryWrapperService;
   private final FrontierApiRegisterService frontierAPIRegisterService;
+  private final ApplicationContext applicationContext;
 
-  @Autowired
-  public FrontierAPIController(GenericWebApplicationContext context,
+  public FrontierAPIController(
+      ApplicationContext applicationContext,
+      FrontierRepositoryWrapperService frontierRepositoryWrapperService,
       FrontierApiRegisterService frontierAPIRegisterService) {
-    this.context = context;
+    this.applicationContext = applicationContext;
+    this.frontierRepositoryWrapperService = frontierRepositoryWrapperService;
     this.frontierAPIRegisterService = frontierAPIRegisterService;
   }
 
@@ -78,27 +78,16 @@ public class FrontierAPIController implements Ordered,
       HttpServletResponse response,
       @RequestBody FrontierApiRequestMessage body) {
 
-    Optional<FrontierRepositoryWrapperService> frontierRepositoryWrapperOpt = Optional.empty();
-    try {
-      frontierRepositoryWrapperOpt = Optional.of(context
-          .getBean(FrontierRepositoryWrapperService.class));
-    } catch (NoSuchBeanDefinitionException e) {
-    }
-
-    if (!frontierRepositoryWrapperOpt.isPresent()) {
-      return buildFrontierResponseEntity(FrontierResourceErrorHandling.NO_FRONTIER_USAGE);
-    }
-
-    frontierRepositoryWrapperOpt.ifPresent(frw -> frw.getFrontierRepositoryProperties()
+    frontierRepositoryWrapperService.getFrontierRepositoryProperties()
         .forEach((key, value) -> {
           if (value.stream().map(FrontierRepositoryProperty::getGuarantee)
               .anyMatch(p -> p.equals(Guarantee.SYNCHRONOUS))) {
-            CrudRepository crudRepository = (CrudRepository) context
+            CrudRepository crudRepository = (CrudRepository) applicationContext
                 .getBean(key.getBeanName());
             controllersEndpoint.put(FRONTIER_ENDPOINT + key.getBeanName(),
                 new FrontierRequestService(crudRepository));
           }
-        }));
+        });
 
     String requestURI = request.getRequestURI();
 
