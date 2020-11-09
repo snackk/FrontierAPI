@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.frontier.api.annotation.processor.config.SpringBootFrontierAutoConfiguration
+com.frontier.api.annotation.processor.config.FrontierConfiguration

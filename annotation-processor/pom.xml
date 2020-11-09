@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.frontier.api</groupId>
 	<artifactId>annotation-processor</artifactId>
-	<version>1.0.7-SNAPSHOT</version>
+	<version>1.0.53-SNAPSHOT</version>
 	<name>annotation-processor</name>
 	<description>FrontierAPI Annotation Processor</description>
 	<url>https://github.com/snackk/FrontierAPI</url>

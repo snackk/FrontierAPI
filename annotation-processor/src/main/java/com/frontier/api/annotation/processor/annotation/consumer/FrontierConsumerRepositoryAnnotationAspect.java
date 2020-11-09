@@ -1,9 +1,8 @@
 package com.frontier.api.annotation.processor.annotation.consumer;
 
-import com.frontier.api.annotation.processor.controller.amqp.FrontierAPIAMQPProducer;
-import com.frontier.api.annotation.processor.controller.rest.FrontierAPIController;
-import com.frontier.api.annotation.processor.immutables.api.FrontierApiIdentity;
-import com.frontier.api.annotation.processor.immutables.domain.Guarantee;
+import com.frontier.api.annotation.processor.annotation.immutables.Guarantee;
+import com.frontier.api.annotation.processor.annotation.service.FrontierMessageProducerService;
+import com.frontier.api.annotation.processor.api.immutables.FrontierApiIdentity;
 import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -13,20 +12,14 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 @Aspect
-//@Component
+@Component
 public class FrontierConsumerRepositoryAnnotationAspect {
 
-  private final FrontierAPIAMQPProducer frontierProviderAMQPProducer;
-  private final FrontierAPIController frontierProviderController;
-
-  private final static String WRONG_GUARANTEE = "@Properties(guarantee = \"\"\n"
-      + "Valid guarantees are: synchronous, asynchronous and best-effort.";
+  private final FrontierMessageProducerService frontierMessageProducerService;
 
   public FrontierConsumerRepositoryAnnotationAspect(
-      FrontierAPIAMQPProducer frontierProviderAMQPProducer,
-      FrontierAPIController frontierProviderController) {
-    this.frontierProviderAMQPProducer = frontierProviderAMQPProducer;
-    this.frontierProviderController = frontierProviderController;
+      FrontierMessageProducerService frontierMessageProducerService) {
+    this.frontierMessageProducerService = frontierMessageProducerService;
   }
 
   @Around("@annotation(com.frontier.api.annotation.processor.annotation.consumer.FrontierConsumerRepository)")
@@ -35,9 +28,10 @@ public class FrontierConsumerRepositoryAnnotationAspect {
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     Method method = signature.getMethod();
 
+    //Safe to do a get here, we validate it in compile time
     Guarantee guarantee = Guarantee.getMethodGuarantee(
         method.getAnnotation(FrontierConsumerRepository.class).guarantee())
-        .orElseThrow(() -> new IllegalArgumentException(WRONG_GUARANTEE));
+        .get();
 
     FrontierApiIdentity frontierApiIdentity = FrontierApiIdentity.builder()
         .beanName(method.getDeclaringClass().getName())
@@ -45,13 +39,7 @@ public class FrontierConsumerRepositoryAnnotationAspect {
         .guarantee(guarantee.toString())
         .build();
 
-    if (guarantee.equals(Guarantee.SYNCHRONOUS)) {
-      return frontierProviderController
-          .produceMessage(frontierApiIdentity, ImmutableSet.copyOf(joinPoint.getArgs()))
-          .getResponse();
-    } else {
-      return frontierProviderAMQPProducer
-          .produceMessage(frontierApiIdentity, ImmutableSet.copyOf(joinPoint.getArgs()));
-    }
+    return frontierMessageProducerService
+        .process(guarantee, frontierApiIdentity, ImmutableSet.copyOf(joinPoint.getArgs()));
   }
 }

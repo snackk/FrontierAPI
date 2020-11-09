@@ -1,4 +1,4 @@
-package com.frontier.api.annotation.processor.annotation.consumer;
+package com.frontier.api.annotation.processor.annotation.provider;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-public @interface FrontierConsumerRepository {
+public @interface FrontierProperties {
 
   String guarantee();
 }
