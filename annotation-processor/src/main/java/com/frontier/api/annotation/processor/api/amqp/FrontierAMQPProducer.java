@@ -9,6 +9,8 @@ import com.frontier.api.annotation.processor.api.immutables.FrontierApiIdentity;
 import com.frontier.api.annotation.processor.api.immutables.FrontierApiRequestMessage;
 import com.frontier.api.annotation.processor.exception.FrontierUnrecoverableException;
 import com.frontier.api.annotation.processor.register.FrontierRegisterService;
+import com.frontier.api.annotation.processor.register.immutables.FrontierDestination;
+import com.frontier.api.annotation.processor.register.immutables.FrontierRegisterNode;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -43,22 +45,23 @@ public class FrontierAMQPProducer implements
   public Void produceMessage(FrontierApiIdentity identity,
       Set<Object> params) {
 
-    Pair<String, FrontierApiIdentity> foundFrontierServiceIdentity =
+    Pair<FrontierDestination, FrontierRegisterNode> discoveredDestination =
         this.frontierRegisterService
-            .resolveServiceName(identity.getBeanName(),
+            .resolveFrontierDestination(identity.getBeanName(),
                 identity.getMethodName(),
                 ASYNCHRONOUS)
             .orElseThrow(() -> new FrontierUnrecoverableException("Cache Miss."));
 
     FrontierApiRequestMessage frontierApiRequestMessage = FrontierApiRequestMessage.builder()
-        .beanName(foundFrontierServiceIdentity.getRight().getBeanName())
-        .methodName(foundFrontierServiceIdentity.getRight().getMethodName())
+        .beanName(discoveredDestination.getRight().getBeanName())
+        .methodName(discoveredDestination.getRight().getMethodName())
         .methodParams(params)
         .build();
 
     try {
       String messagePayload = new ObjectMapper().writeValueAsString(frontierApiRequestMessage);
-      rabbitTemplate.convertAndSend(foundFrontierServiceIdentity.getLeft(), "", messagePayload);
+      rabbitTemplate
+          .convertAndSend(discoveredDestination.getLeft().getName(), "", messagePayload);
     } catch (JsonProcessingException e) {
       throw new FrontierUnrecoverableException("Error publishing RabbitMQ message.");
     }

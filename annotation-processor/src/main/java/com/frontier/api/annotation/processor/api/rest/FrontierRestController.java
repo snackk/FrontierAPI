@@ -11,6 +11,8 @@ import com.frontier.api.annotation.processor.exception.FrontierRecoverableExcept
 import com.frontier.api.annotation.processor.exception.FrontierUnrecoverableException;
 import com.frontier.api.annotation.processor.executor.FrontierExecutor;
 import com.frontier.api.annotation.processor.register.FrontierRegisterService;
+import com.frontier.api.annotation.processor.register.immutables.FrontierDestination;
+import com.frontier.api.annotation.processor.register.immutables.FrontierRegisterNode;
 import java.util.Set;
 import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
@@ -31,8 +33,8 @@ public class FrontierRestController implements
     FrontierAPIInterface<FrontierApiResponseMessage, FrontierApiIdentity, Set<Object>> {
 
   private final static String FRONTIER_ENDPOINT = "/api/frontier/";
-  private final static Function<Pair<String, FrontierApiIdentity>, String> FRONTIER_API_BUILDER =
-      (a) -> a.getLeft() + FRONTIER_ENDPOINT + a.getRight().getBeanName();
+  private final static Function<Pair<FrontierDestination, FrontierRegisterNode>, String> FRONTIER_ENDPOINT_BUILDER_FUNC =
+      (a) -> a.getLeft().getName() + FRONTIER_ENDPOINT + a.getRight().getBeanName();
 
   private final FrontierRepositoryCacheService frontierRepositoryCacheService;
   private final FrontierRegisterService frontierRegisterService;
@@ -50,9 +52,9 @@ public class FrontierRestController implements
   public FrontierApiResponseMessage produceMessage(
       FrontierApiIdentity identity, Set<Object> params) {
 
-    Pair<String, FrontierApiIdentity> foundFrontierServiceIdentity =
+    Pair<FrontierDestination, FrontierRegisterNode> discoveredDestination =
         this.frontierRegisterService
-            .resolveServiceName(identity.getBeanName(),
+            .resolveFrontierDestination(identity.getBeanName(),
                 identity.getMethodName(),
                 SYNCHRONOUS)
             .orElseThrow(() -> new FrontierUnrecoverableException("Cache Miss."));
@@ -60,13 +62,13 @@ public class FrontierRestController implements
     RestTemplate restTemplate = new RestTemplate();
 
     FrontierApiRequestMessage frontierApiRequestMessage = FrontierApiRequestMessage.builder()
-        .beanName(foundFrontierServiceIdentity.getRight().getBeanName())
-        .methodName(foundFrontierServiceIdentity.getRight().getMethodName())
+        .beanName(discoveredDestination.getRight().getBeanName())
+        .methodName(discoveredDestination.getRight().getMethodName())
         .methodParams(params)
         .build();
 
     ResponseEntity<FrontierApiResponseMessage> response = restTemplate
-        .postForEntity(FRONTIER_API_BUILDER.apply(foundFrontierServiceIdentity),
+        .postForEntity(FRONTIER_ENDPOINT_BUILDER_FUNC.apply(discoveredDestination),
             frontierApiRequestMessage, FrontierApiResponseMessage.class);
 
     return response.getBody();

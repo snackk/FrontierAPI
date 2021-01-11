@@ -11,7 +11,7 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class FrontierRegisterResponseMessage {
 
-  private Map<String, List<FrontierRegisterNode>> frontierIdentitiesByServiceName;
+  private Map<FrontierDestination, List<FrontierRegisterNode>> frontierIdentitiesByServiceName;
 
 }
 

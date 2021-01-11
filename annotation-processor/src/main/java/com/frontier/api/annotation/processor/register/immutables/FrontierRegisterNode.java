@@ -9,8 +9,6 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class FrontierRegisterNode {
 
-  private String serviceName;
-
   private String beanName;
 
   private String methodName;
