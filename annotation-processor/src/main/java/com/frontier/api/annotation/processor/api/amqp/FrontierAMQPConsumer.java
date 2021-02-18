@@ -28,7 +28,7 @@ public class FrontierAMQPConsumer {
 
   @RabbitListener(queues = "${frontier-rabbitmq-queue-name}")
   public void consumeMessage(String jsonPayload) throws FrontierRecoverableException {
-    Optional<FrontierApiRequestMessage> bodyOpt = Optional.empty();
+    Optional<FrontierApiRequestMessage> bodyOpt;
     try {
       bodyOpt = Optional
           .ofNullable(new ObjectMapper().readValue(jsonPayload, FrontierApiRequestMessage.class));

@@ -2,9 +2,9 @@ package com.frontier.api.annotation.processor.api.rest;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
+import com.frontier.api.annotation.processor.api.immutables.FrontierApiResponseMessage;
 import com.frontier.api.annotation.processor.exception.FrontierRecoverableException;
 import com.frontier.api.annotation.processor.exception.FrontierUnrecoverableException;
-import com.frontier.api.annotation.processor.api.immutables.FrontierApiResponseMessage;
 import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
