@@ -1,4 +1,4 @@
-package com.frontier.api.annotation.processor.register.immutables;
+package com.frontier.api.coordinator.rest.imutables;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -11,3 +11,4 @@ public class FrontierDestination {
 
   private String name;
 }
+

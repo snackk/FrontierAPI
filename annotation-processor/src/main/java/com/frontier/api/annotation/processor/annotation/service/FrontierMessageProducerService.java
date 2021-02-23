@@ -25,8 +25,9 @@ public class FrontierMessageProducerService implements
     this.frontierAMQPProducer = frontierAMQPProducer;
   }
 
-  public Object process(final Guarantee guarantee,
-      final FrontierApiIdentity identity,
+  public Object process(
+      Guarantee guarantee,
+      FrontierApiIdentity identity,
       Set<Object> params) {
     return guarantee.accept(this, identity, params);
   }

@@ -1,4 +1,4 @@
-package com.frontier.api.annotation.processor.register.immutables;
+package com.frontier.api.coordinator.rest.imutables;
 
 import java.util.List;
 import java.util.Map;
@@ -14,4 +14,3 @@ public class FrontierRegisterResponseMessage {
   private Map<FrontierDestination, List<FrontierRegisterNode>> frontierIdentitiesByServiceName;
 
 }
-

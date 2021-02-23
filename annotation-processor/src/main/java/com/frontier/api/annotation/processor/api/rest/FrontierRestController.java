@@ -1,24 +1,17 @@
 package com.frontier.api.annotation.processor.api.rest;
 
-import static com.frontier.api.annotation.processor.annotation.immutables.Guarantee.SYNCHRONOUS;
-
 import com.frontier.api.annotation.processor.annotation.service.FrontierRepositoryCacheService;
 import com.frontier.api.annotation.processor.api.FrontierAPIInterface;
 import com.frontier.api.annotation.processor.api.immutables.FrontierApiIdentity;
 import com.frontier.api.annotation.processor.api.immutables.FrontierApiRequestMessage;
 import com.frontier.api.annotation.processor.api.immutables.FrontierApiResponseMessage;
 import com.frontier.api.annotation.processor.exception.FrontierRecoverableException;
-import com.frontier.api.annotation.processor.exception.FrontierUnrecoverableException;
 import com.frontier.api.annotation.processor.executor.FrontierExecutor;
 import com.frontier.api.annotation.processor.register.FrontierRegisterService;
-import com.frontier.api.annotation.processor.register.immutables.FrontierDestination;
-import com.frontier.api.annotation.processor.register.immutables.FrontierRegisterNode;
 import java.util.Set;
-import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.http.HttpStatus;
@@ -26,15 +19,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class FrontierRestController implements
     FrontierAPIInterface<FrontierApiResponseMessage, FrontierApiIdentity, Set<Object>> {
 
-  private final static String FRONTIER_ENDPOINT = "/api/frontier/";
-  private final static Function<Pair<FrontierDestination, FrontierRegisterNode>, String> FRONTIER_ENDPOINT_BUILDER_FUNC =
-      (a) -> a.getLeft().getName() + FRONTIER_ENDPOINT + a.getRight().getBeanName();
+  private final static String NODE_ENDPOINT = "/api/frontier/";
 
   private final FrontierRepositoryCacheService frontierRepositoryCacheService;
   private final FrontierRegisterService frontierRegisterService;
@@ -52,29 +42,19 @@ public class FrontierRestController implements
   public FrontierApiResponseMessage produceMessage(
       FrontierApiIdentity identity, Set<Object> params) {
 
-    Pair<FrontierDestination, FrontierRegisterNode> discoveredDestination =
-        this.frontierRegisterService
-            .resolveFrontierDestination(identity.getBeanName(),
-                identity.getMethodName(),
-                SYNCHRONOUS)
-            .orElseThrow(() -> new FrontierUnrecoverableException("Cache Miss."));
-
-    RestTemplate restTemplate = new RestTemplate();
-
     FrontierApiRequestMessage frontierApiRequestMessage = FrontierApiRequestMessage.builder()
-        .beanName(discoveredDestination.getRight().getBeanName())
-        .methodName(discoveredDestination.getRight().getMethodName())
+        .beanName(identity.getBeanName())
+        .methodName(identity.getMethodName())
         .methodParams(params)
         .build();
 
-    ResponseEntity<FrontierApiResponseMessage> response = restTemplate
-        .postForEntity(FRONTIER_ENDPOINT_BUILDER_FUNC.apply(discoveredDestination),
-            frontierApiRequestMessage, FrontierApiResponseMessage.class);
+    ResponseEntity<FrontierApiResponseMessage> response = this.frontierRegisterService
+        .proxyFrontierRequest(frontierApiRequestMessage);
 
     return response.getBody();
   }
 
-  @RequestMapping(FRONTIER_ENDPOINT + "/**")
+  @RequestMapping(NODE_ENDPOINT + "/**")
   public ResponseEntity<FrontierApiResponseMessage> frontierHandler(
       HttpServletRequest request,
       HttpServletResponse response,
