@@ -1,2 +1,2 @@
 # FrontierAPI
-A Microservices aware consitency API for Java.
+A Microservices aware consistency API for Java.
